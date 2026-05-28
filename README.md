@@ -1,1 +1,43 @@
 # agent-skills
+
+Reusable skills and prompts repository for agent workflows.
+
+## Purpose
+
+This repo is being built from `C:/WebDevelopment/ws/call-center/ah-vacv-spa/.codex` source assets.
+
+The goal is to migrate free-form prompt guidance into durable, reusable `SKILL.md` packages with:
+
+- clear invocation intent
+- explicit procedures
+- strict output contracts
+- non-negotiable guardrails
+
+## Repository Layout
+
+- `.github/skills/`: reusable skill packages
+- `.github/prompts/`: direct-use prompts and prompt source material
+- `.github/agents/`: specialized custom agents for this repo
+- `docs/migration/`: migration map, issue queue, and rollout docs
+
+## Migration Workflow
+
+1. Capture source-to-target mappings in `docs/migration/MIGRATION_MAP.md`.
+2. Create GitHub issues for each migration domain.
+3. Implement one issue per branch.
+4. Open one PR per issue with verification evidence.
+5. Merge in issue order unless reprioritized.
+6. Run quality gate review before finalizing the migration.
+
+## Authoring Standards
+
+- Keep each skill focused on one job.
+- Prefer explicit, testable procedural steps.
+- Preserve source traceability in every migrated skill.
+- Avoid duplicated global guidance by extracting shared context skills.
+- Treat prompts as source material and skills as operational contracts.
+
+## Tracking
+
+- Migration map: `docs/migration/MIGRATION_MAP.md`
+- Issue queue: `docs/migration/ISSUES.md`
