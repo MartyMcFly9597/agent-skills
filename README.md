@@ -19,6 +19,8 @@ The goal is to migrate free-form prompt guidance into durable, reusable `SKILL.m
 - `.github/prompts/`: direct-use prompts and prompt source material
 - `.github/agents/`: specialized custom agents for this repo
 - `docs/migration/`: migration map, issue queue, and rollout docs
+- `docs/quality/`: review checklist, external AI review prompt, quality report
+- `docs/process/`: issue-driven branch and PR delivery workflow
 
 ## Migration Workflow
 
@@ -41,3 +43,5 @@ The goal is to migrate free-form prompt guidance into durable, reusable `SKILL.m
 
 - Migration map: `docs/migration/MIGRATION_MAP.md`
 - Issue queue: `docs/migration/ISSUES.md`
+- Quality checklist: `docs/quality/REVIEW_CHECKLIST.md`
+- Delivery workflow: `docs/process/ISSUE_DELIVERY_WORKFLOW.md`
