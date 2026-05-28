@@ -45,3 +45,30 @@ The goal is to migrate free-form prompt guidance into durable, reusable `SKILL.m
 - Issue queue: `docs/migration/ISSUES.md`
 - Quality checklist: `docs/quality/REVIEW_CHECKLIST.md`
 - Delivery workflow: `docs/process/ISSUE_DELIVERY_WORKFLOW.md`
+
+## Skills CLI (Hybrid Install)
+
+This repository includes a Node CLI named `skills` for local npm usage now and `npx` usage after publish.
+
+### Local usage
+
+- `npm install`
+- `npm run skills:list`
+- `npm run skills:install -- . --with-prompts`
+
+Optional global link on your own machine:
+
+- `npm link`
+- `skills list`
+
+### npx usage (after npm publish)
+
+- `npx @martymcfly9597/agent-skills list`
+- `npx @martymcfly9597/agent-skills install . --with-prompts`
+
+If you later secure the package name `skills`, then this becomes:
+
+- `npx skills list`
+- `npx skills install . --with-prompts`
+
+CLI docs: `docs/process/SKILLS_CLI_INSTALL.md`

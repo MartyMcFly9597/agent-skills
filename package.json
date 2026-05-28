@@ -1,0 +1,33 @@
+{
+  "name": "@martymcfly9597/agent-skills",
+  "version": "0.1.0",
+  "description": "Install and manage workspace Copilot skills from the agent-skills repository.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "skills": "bin/skills.js"
+  },
+  "files": [
+    "bin",
+    ".github/skills",
+    ".github/prompts",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "skills": "node bin/skills.js",
+    "skills:list": "node bin/skills.js list",
+    "skills:doctor": "node bin/skills.js doctor",
+    "skills:install": "node bin/skills.js install"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "copilot",
+    "skills",
+    "agent",
+    "vscode",
+    "prompts"
+  ]
+}
