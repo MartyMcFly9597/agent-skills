@@ -72,3 +72,5 @@ If you later secure the package name `skills`, then this becomes:
 - `npx skills install . --with-prompts`
 
 CLI docs: `docs/process/SKILLS_CLI_INSTALL.md`
+
+Publish checklist: `docs/process/NPM_PUBLISH_CHECKLIST.md`
