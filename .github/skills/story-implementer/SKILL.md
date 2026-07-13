@@ -20,12 +20,13 @@ Execute `PLAN.md` one step at a time with tests and verification before marking 
 1. Read and validate `PLAN.md` against Jira story.
 2. Resume at first unchecked step.
 3. For each step:
+  - check `repo:` field to determine target repo (SPA or e2e)
   - implement minimal safe change
   - add or update tests
   - run step verification commands
   - confirm all `done_when` items
   - mark `[x]` only after evidence
-4. Commit completed step before starting next step.
+4. Commit completed step in the appropriate repo before starting next step.
 
 ## Output contract
 
@@ -43,6 +44,7 @@ Execute `PLAN.md` one step at a time with tests and verification before marking 
 - Never skip tests.
 - Never skip verification.
 - Never mark completion early.
+- Never commit e2e changes in the SPA repo or vice versa.
 
 ## Source prompts
 

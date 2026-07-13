@@ -39,7 +39,15 @@ If multiple consecutive steps are already satisfied:
 
 ## Execution rules
 
-## UI consistency rules (when step touches frontend)
+### Repo context awareness
+
+- Check the step for a `repo:` field
+- If `repo: e2e` — work in the adjacent e2e repository
+- Otherwise — work in the SPA repository
+- Ensure the correct branch exists in each repo before making changes
+- The e2e branch name MUST match the SPA feature branch name
+
+### UI consistency rules (when step touches frontend)
 
 - Before editing UI, inspect the same feature area in at least one existing SPA and copy its layout/component pattern.
 - Reuse existing shared classes, CSS tokens, PrimeVue components, and structural conventions before introducing new ones.
@@ -53,6 +61,7 @@ If multiple consecutive steps are already satisfied:
 - Do not start the next step until the current one is implemented, tested, verified, and marked complete in PLAN.md.
 - After satisfying a step's done_when, run the listed tests and verify commands, update PLAN.md to [x], and create a git commit for that step before moving on.
 - Reference the exact verification commands in your output so reviewers know what was executed.
+- For e2e steps: commit in the e2e repo, not the SPA repo.
 
 For the current step:
 
@@ -63,6 +72,23 @@ For the current step:
 
 ---
 
+## E2E implementation rules
+
+When executing a step with `repo: e2e`:
+
+1. Switch to the e2e repo working directory
+2. Ensure you are on the correct matching branch (create from latest `develop` if it doesn't exist)
+3. Follow existing patterns:
+   - Page objects go in `tests/page-objects/`
+   - Fixtures/helpers go in `tests/<feature>/helpers/`
+   - Specs follow the `suite-NN-<description>.spec.ts` naming convention
+4. Use existing page objects and extend them rather than creating parallel ones
+5. Import from established fixture/helper patterns in the feature directory
+6. Tests must exercise real page interactions (navigation, clicks, form fills, assertions on visible content)
+7. Verification: run the specific spec file with `npx playwright test <spec-path> --reporter=list`
+
+---
+
 ## Testing (MANDATORY)
 
 - Add or update tests for THIS step
@@ -70,6 +96,7 @@ For the current step:
   - new behavior
   - relevant regression risks
   - the step's `done_when` conditions where testable
+- For e2e steps: tests ARE the deliverable — ensure they actually pass against the running application or route-mocked page
 
 ---
 
@@ -83,6 +110,7 @@ At minimum, when relevant, this includes:
 - lint
 - css/style lint
 - build
+- e2e spec execution (for e2e steps)
 
 If anything fails:
 
@@ -113,7 +141,7 @@ Then:
 - update `PLAN.md`
 - update the step status to `[x]`
 - add a brief completion note under the step if useful
-- create a git commit documenting the finished step before beginning any new work
+- create a git commit in the appropriate repo documenting the finished step before beginning any new work
 
 ---
 
@@ -123,6 +151,7 @@ For each run:
 
 - state whether you are resuming or starting the next incomplete step
 - state which step is being executed
+- state which repo the step targets (SPA or e2e)
 - summarize what changed
 - summarize tests added/updated
 - summarize verification results (include the exact commands run)
@@ -140,3 +169,4 @@ For each run:
 - Never jump ahead
 - Never ignore `done_when`
 - Never recreate `PLAN.md` unless it is missing or invalid
+- Never commit e2e changes in the SPA repo or vice versa

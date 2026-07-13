@@ -21,9 +21,11 @@ Gate story completion by validating plan integrity, implementation quality, test
 1. Validate `PLAN.md` exists and matches Jira story.
 2. Confirm each completed step has clear `goal`, `files`, `tests`, `verify`, `done_when`.
 3. Audit code changes against story scope and patterns.
-4. Check tests for completed steps and regression coverage.
-5. Confirm verification evidence is present and current.
-6. Flag unsupported checklist completion.
+4. Check unit tests for completed SPA steps and regression coverage.
+5. Check e2e tests exist for user-facing acceptance criteria.
+6. Verify e2e branch exists and matches SPA branch name.
+7. Confirm verification evidence is present and current.
+8. Flag unsupported checklist completion.
 
 ## Output contract
 
@@ -38,6 +40,7 @@ Gate story completion by validating plan integrity, implementation quality, test
 
 - Do not pass without verification evidence.
 - Do not trust checklist completion without code and test proof.
+- Do not pass user-facing stories without e2e coverage.
 
 ## Source prompts
 
