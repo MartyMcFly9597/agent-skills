@@ -11,8 +11,7 @@
     "bin",
     ".github/skills",
     ".github/prompts",
-    "README.md",
-    "docs"
+    "README.md"
   ],
   "scripts": {
     "skills": "node bin/skills.js",
