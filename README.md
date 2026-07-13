@@ -1,76 +1,90 @@
 # agent-skills
 
-Reusable skills and prompts repository for agent workflows.
+Reusable skills and prompts for agent workflows.
 
-## Purpose
+## Repository layout
 
-This repo is being built from `C:/WebDevelopment/ws/call-center/ah-vacv-spa/.codex` source assets.
+```
+.github/
+  skills/          # Skill packages (one SKILL.md per directory)
+  prompts/         # Agent prompts (role instructions for direct invocation)
+  agents/          # Custom agent definitions for this repo
+bin/               # Skills CLI
+```
 
-The goal is to migrate free-form prompt guidance into durable, reusable `SKILL.md` packages with:
+## Using skills in another repo
 
-- clear invocation intent
-- explicit procedures
-- strict output contracts
-- non-negotiable guardrails
+### Option 1: Symlink (recommended for local development)
 
-## Repository Layout
+From your project root, symlink `.codex/skills` and `.codex/prompts` to this repo:
 
-- `.github/skills/`: reusable skill packages
-- `.github/prompts/`: direct-use prompts and prompt source material
-- `.github/agents/`: specialized custom agents for this repo
-- `docs/migration/`: migration map, issue queue, and rollout docs
-- `docs/quality/`: review checklist, external AI review prompt, quality report
-- `docs/process/`: issue-driven branch and PR delivery workflow
+```bash
+# From your project repo (adjust relative path as needed)
+ln -s ../../../agent-skills/.github/skills .codex/skills
+ln -s ../../../agent-skills/.github/prompts .codex/prompts
+```
 
-## Migration Workflow
+Changes in `agent-skills` are reflected immediately — no copy or sync step.
 
-1. Capture source-to-target mappings in `docs/migration/MIGRATION_MAP.md`.
-2. Create GitHub issues for each migration domain.
-3. Implement one issue per branch.
-4. Open one PR per issue with verification evidence.
-5. Merge in issue order unless reprioritized.
-6. Run quality gate review before finalizing the migration.
+### Option 2: CLI install (copies files into target repo)
 
-## Authoring Standards
+```bash
+# Local usage (from this repo)
+npm install
+npm run skills:install -- /path/to/target --with-prompts
 
-- Keep each skill focused on one job.
-- Prefer explicit, testable procedural steps.
-- Preserve source traceability in every migrated skill.
-- Avoid duplicated global guidance by extracting shared context skills.
-- Treat prompts as source material and skills as operational contracts.
+# Or link globally
+npm link
+skills install /path/to/target --with-prompts
 
-## Tracking
+# npx (after npm publish)
+npx @martymcfly9597/agent-skills install /path/to/target --with-prompts
+```
 
-- Migration map: `docs/migration/MIGRATION_MAP.md`
-- Issue queue: `docs/migration/ISSUES.md`
-- Quality checklist: `docs/quality/REVIEW_CHECKLIST.md`
-- Delivery workflow: `docs/process/ISSUE_DELIVERY_WORKFLOW.md`
+### Option 3: Manual copy
 
-## Skills CLI (Hybrid Install)
+Copy `.github/skills/` and `.github/prompts/` into your project's `.codex/` or `.github/` directory.
 
-This repository includes a Node CLI named `skills` for local npm usage now and `npx` usage after publish.
+## Available skills
 
-### Local usage
+| Skill | Purpose |
+|-------|---------|
+| `story-planner` | Plan a Jira story into a testable PLAN.md checklist |
+| `story-implementer` | Execute PLAN.md one step at a time with verification |
+| `story-verifier` | Gate story completion with strict review |
+| `pr-review` | Diff-scoped pull request review with severity labels |
+| `shared-vue-testing-context` | Shared testing constraints for Vue component tests |
+| `vue-testing-library-black-box` | Black-box Vue component testing with Testing Library |
+| `vue-bug-fixer-regression-guard` | Bug fix with regression guard tests |
+| `vue-bug-fix-reviewer` | Review bug fix PRs for quality and regression risk |
 
-- `npm install`
-- `npm run skills:list`
-- `npm run skills:install -- . --with-prompts`
+## CLI commands
 
-Optional global link on your own machine:
+| Command | Description |
+|---------|-------------|
+| `skills list` | List available skill packages |
+| `skills install [target]` | Copy skills into target workspace |
+| `skills install [target] --with-prompts` | Also copy prompts |
+| `skills doctor` | Print environment and source directory checks |
 
-- `npm link`
-- `skills list`
+Flags: `--force` (overwrite), `--dry-run` (preview), `--source <path>` (override source root).
 
-### npx usage (after npm publish)
+## Maintaining this repo
 
-- `npx @martymcfly9597/agent-skills list`
-- `npx @martymcfly9597/agent-skills install . --with-prompts`
+### Adding a skill
 
-If you later secure the package name `skills`, then this becomes:
+1. Create `.github/skills/<skill-name>/SKILL.md`.
+2. If the skill has a companion prompt, create `.github/prompts/<name>.md`.
+3. Update the table in this README.
 
-- `npx skills list`
-- `npx skills install . --with-prompts`
+### Skill structure
 
-CLI docs: `docs/process/SKILLS_CLI_INSTALL.md`
+```
+.github/skills/<skill-name>/
+  SKILL.md              # Required — purpose, when to use, procedure, output contract, rules
+  supporting-file.*     # Optional — heavy reference or reusable tools
+```
 
-Publish checklist: `docs/process/NPM_PUBLISH_CHECKLIST.md`
+### Branching
+
+One feature branch per change, one PR per branch, target `main`.
