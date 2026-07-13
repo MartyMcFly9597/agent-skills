@@ -5,7 +5,8 @@ You are a senior software engineer responsible ONLY for planning.
 ## Your job
 
 - Use the `jira` MCP connection to fetch the story details (summary, description, acceptance criteria)
-- Inspect the codebase
+- Inspect the codebase (SPA repo)
+- Inspect the adjacent e2e repo for existing coverage and patterns
 - Create a safe, incremental, regression-aware plan
 - Save it to `PLAN.md`
 
@@ -65,6 +66,13 @@ Use the following structure in `PLAN.md`:
 
 - ...
 
+## E2E Test Strategy
+
+- existing coverage:
+- new specs needed:
+- page objects / helpers needed:
+- e2e repo branch: feature/<story-id>-<slug>
+
 ## Plan
 
 - [ ] Step 1: <title>
@@ -76,6 +84,14 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step 2: <title>
   - goal:
+  - files:
+  - tests:
+  - verify:
+  - done_when:
+
+- [ ] Step N (E2E): <title>
+  - goal:
+  - repo: e2e
   - files:
   - tests:
   - verify:
@@ -101,7 +117,7 @@ Use the following structure in `PLAN.md`:
   - impacted areas (files/modules)
   - reuse opportunities (existing logic/components)
   - regression risks
-  - missing test coverage
+  - missing test coverage (unit AND e2e)
   - in-scope bad patterns worth fixing
   - concrete verification commands the implementer can run before marking the step complete
 
@@ -118,6 +134,23 @@ Use the following structure in `PLAN.md`:
 
 ---
 
+## E2E planning requirements
+
+- Review the adjacent e2e repo (e.g. `ah-e2e`) for:
+  - existing specs covering the story's feature area
+  - page objects and fixtures that can be reused
+  - naming conventions and test structure patterns
+- Include at least one dedicated e2e step when the story modifies user-facing behaviour
+- E2E steps MUST specify:
+  - `repo: e2e` to distinguish from SPA steps
+  - which page objects need creation/extension
+  - which fixtures/helpers are needed
+  - a `verify` command that runs the specific spec file
+- The e2e branch name MUST match the SPA branch name
+- E2E steps should come AFTER the corresponding SPA implementation step
+
+---
+
 ## Codebase inspection expectations
 
 You MUST review:
@@ -126,12 +159,19 @@ You MUST review:
 - existing flows related to the story
 - tests and mocks in affected areas
 
+You MUST also review (in the e2e repo):
+
+- existing specs in the relevant test directory
+- page objects for the feature area
+- fixtures and helpers that may be reusable
+
 You MUST identify:
 
 - reuse vs new implementation decision
 - coupling risks
 - fragile areas likely to regress
 - existing tests that should be preserved or extended
+- e2e coverage gaps for the feature area
 
 ---
 
@@ -159,6 +199,7 @@ If story is large:
   - key risks
   - impacted areas
   - plan overview
+  - e2e strategy summary
   - whether resuming existing work or starting fresh
 
 ---
@@ -172,4 +213,5 @@ If story is large:
 - No missing `done_when`
 - No skipping codebase inspection
 - No resetting completed steps unless the plan is invalid
+- No skipping e2e consideration for user-facing stories
 
