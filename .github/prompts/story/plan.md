@@ -14,6 +14,16 @@ You DO NOT implement code.
 
 ---
 
+## Model policy (ENFORCED)
+
+Follow the [model policy](../model-policy.md) — phase: **story planning**.
+
+- Run on Claude Opus 5 (extended thinking); fallback Claude Fable 5. If running as any other model, STOP and ask the user to switch before planning.
+- Stamp every plan step with a `model:` field from the policy's phase table (implementation/test steps → Claude Sonnet 5, mechanical steps → Gemini 3.7 Flash) so each step executes in a fresh context on the cheapest capable model.
+- Do NOT assign Restricted-tier or unknown-cost models (Fable, GPT-6 Astra, GPT-5.6 family) to steps.
+
+---
+
 ## Resume logic
 
 - If `PLAN.md` exists:
@@ -77,6 +87,7 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step 1: <title>
   - goal:
+  - model:
   - files:
   - tests:
   - verify:
@@ -84,6 +95,7 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step 2: <title>
   - goal:
+  - model:
   - files:
   - tests:
   - verify:
@@ -91,6 +103,7 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step N (E2E): <title>
   - goal:
+  - model:
   - repo: e2e
   - files:
   - tests:
@@ -131,6 +144,8 @@ Use the following structure in `PLAN.md`:
   - introducing new patterns without strong justification
 
 - Every step MUST include a concrete `done_when` list so completion can be verified objectively.
+
+- Every step MUST include a `model:` assigned from the model policy phase table.
 
 ---
 
@@ -211,6 +226,7 @@ If story is large:
 - No large steps
 - No missing tests
 - No missing `done_when`
+- No missing `model` per step
 - No skipping codebase inspection
 - No resetting completed steps unless the plan is invalid
 - No skipping e2e consideration for user-facing stories

@@ -7,6 +7,7 @@ agent: "agent"
 Execute fix for this bug: ${input:arg1}
 
 Follow [bug fix spec](../../.codex/prompts/bug/fix.md).
+Model per [model policy](model-policy.md) — phase: bug fix execution (Claude Sonnet 5, standard). State your model first; stop if it mismatches.
 
 Required behavior:
 - Execute one BUGFIX.md step at a time

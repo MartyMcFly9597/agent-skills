@@ -7,6 +7,7 @@ agent: "agent"
 Verify fix quality for this bug: ${input:arg1}
 
 Follow [bug verification spec](../../.codex/prompts/bug/verify.md).
+Model per [model policy](model-policy.md) — phase: verify / gate review (GPT-5.4 extended or Grok 4.6 — never the vendor that authored the fix). State your model first; stop if it mismatches.
 
 Required checks:
 - BUGFIX.md integrity and root cause accuracy

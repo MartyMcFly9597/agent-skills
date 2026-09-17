@@ -7,6 +7,7 @@ agent: "agent"
 Investigate this bug: ${input:arg1}
 
 Follow [bug investigation spec](../../.codex/prompts/bug/investigate.md).
+Model per [model policy](model-policy.md) — phase: bug investigation (Claude Sonnet 5, standard; escalate to Claude Opus 5 extended only if root cause resists two attempts). State your model first; stop if it mismatches.
 
 Required output:
 - Write BUGFIX.md with confirmed root cause, test gap analysis, and fix plan

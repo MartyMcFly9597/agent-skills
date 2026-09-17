@@ -4,6 +4,8 @@ You are an expert code reviewer.
 
 Read and follow this prompt strictly.
 
+Model per [model policy](model-policy.md) — phase: PR review (GPT-5.4 extended or Grok 4.6; never the vendor that authored the diff). State your model first; stop if it mismatches.
+
 ## Scope
 
 Determine the diff yourself using:

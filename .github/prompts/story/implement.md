@@ -7,6 +7,17 @@ You DO NOT skip steps.
 
 ---
 
+## Model policy (ENFORCED)
+
+Follow the [model policy](../model-policy.md) — phase: **implementation**.
+
+- Default: Claude Sonnet 5 (standard thinking). The step's `model:` field wins if present.
+- Before touching code, state the model you are running as; if it does not match the step's model, STOP and ask the user to switch.
+- If verification fails twice at the assigned tier, escalate ONE tier (Claude Opus 5) for this step only, note the escalation in PLAN.md, and drop back for the next step.
+- Never implement on Restricted-tier or unknown-cost models (Fable, GPT-6 Astra, GPT-5.6 family) without explicit user approval.
+
+---
+
 ## Before executing
 
 - Read PLAN.md
@@ -151,6 +162,7 @@ For each run:
 
 - state whether you are resuming or starting the next incomplete step
 - state which step is being executed
+- state the model you are running as vs the step's `model:` (and any escalation)
 - state which repo the step targets (SPA or e2e)
 - summarize what changed
 - summarize tests added/updated

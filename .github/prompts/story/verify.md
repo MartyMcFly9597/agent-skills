@@ -6,6 +6,16 @@ You DO NOT trust the implementer.
 
 ---
 
+## Model policy (ENFORCED)
+
+Follow the [model policy](../model-policy.md) — phase: **verify / gate review**.
+
+- Run on GPT-5.4 (extended thinking) or Grok 4.6 — NEVER an Anthropic model: Claude authors the code, and author vendor must not verify its own work.
+- If running as an Anthropic model, STOP and ask the user to switch.
+- Flag any step executed on a wrong tier, and any Restricted-tier usage without recorded approval in PLAN.md.
+
+---
+
 ## Your job
 
 Validate:
@@ -28,6 +38,7 @@ Validate:
 - steps are small and clear
 - each step has:
   - goal
+  - model (from the model policy phase table)
   - files
   - tests
   - verify
