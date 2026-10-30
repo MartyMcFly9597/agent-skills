@@ -15,23 +15,20 @@ Create resilient Vue tests using Testing Library from the user perspective.
 
 ## Procedure
 
-1. Use `render` from `@testing-library/vue`.
-2. Write behavior-oriented scenarios with accessible queries first.
-3. Use `findBy*` for async UI behavior.
-4. Use `within(...)` when scoping is needed.
-5. Use `data-testid` only when no stable accessible selector exists.
-6. Keep setup minimal and focused on observable behavior.
+1. Use `render` from `@testing-library/vue`; do not use `mount`.
+2. Write a concise user scenario that observes rendered content, loading/empty states, enabled/disabled state, validation messages, visible outcomes, sorting/filtering/selection, modal behavior, and visible error handling as relevant.
+3. Prefer selectors in this order: role, label, placeholder, visible text, then a stable test id only when no accessible selector exists.
+4. Use `findBy*` for async UI behavior and `within(...)` when scoping queries.
+5. Keep setup minimal; avoid large snapshots, over-mocking, internal state/private-method assertions, and implementation-coupled selectors.
 
 ## Output contract
 
 - Provide test updates that are concise, black-box, and stable under internal refactors.
+- For regression fixes, verify the new test fails against the unfixed behavior before applying the fix, then passes afterward.
 
 ## Non-negotiable rules
 
 - No `mount`.
 - No internal state or private method assertions.
 - No brittle PrimeVue internal DOM coupling.
-
-## Source prompt
-
-- `.github/prompts/vue/vue-testing-library-black-box.md`
+- Tests must protect observable behavior and remain resilient to internal refactors.

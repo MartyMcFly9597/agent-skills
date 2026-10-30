@@ -274,9 +274,6 @@ function validateMarkdownLink(root, filePath, sourcePath, target, report) {
     return false;
   }
   if (!fs.existsSync(resolved)) report.fail(sourcePath, 'relative Markdown link target is missing');
-  if (sourcePath.startsWith('.github/prompts/') && rel.split(/[\\/]/).includes('.codex')) {
-    report.fail(sourcePath, 'installer-managed prompt depends on an uninstalled .codex source');
-  }
   return true;
 }
 

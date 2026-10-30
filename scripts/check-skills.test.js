@@ -127,32 +127,6 @@ test('fails on a private-looking host without echoing the matched text', () => {
   assert.doesNotMatch(output, new RegExp(simulatedHost.replaceAll('.', '\\.')));
 });
 
-test('rejects packaged prompts that link to a .codex source', () => {
-  const result = runChecker('# Public package\n', {
-    '.github/prompts/bug-fix.prompt.md': '[source](../../.codex/prompts/bug/fix.md)\n',
-    '.codex/prompts/bug/fix.md': '# Local source\n',
-  }, ['--shipped', '--package-root', '__ROOT__'], [
-    '.github/skills',
-    '.github/prompts',
-    'README.md',
-  ]);
-
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /installer-managed prompt depends on an uninstalled \.codex source/);
-});
-
-test('does not reject packaged prompt links that normalize outside .codex', () => {
-  const result = runChecker('# Public package\n', {
-    '.github/prompts/bug-fix.prompt.md': '[readme](../../.codex/../README.md)\n',
-  }, ['--shipped', '--package-root', '__ROOT__'], [
-    '.github/skills',
-    '.github/prompts',
-    'README.md',
-  ]);
-
-  assert.equal(result.status, 0, result.stderr);
-});
-
 test('validates inline relative Markdown targets', () => {
   const result = runChecker('[guide](docs/missing.md)\n');
 

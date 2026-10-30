@@ -10,7 +10,6 @@
   "files": [
     "bin",
     ".github/skills",
-    ".github/prompts",
     "README.md"
   ],
   "scripts": {
@@ -28,7 +27,6 @@
     "copilot",
     "skills",
     "agent",
-    "vscode",
-    "prompts"
+    "vscode"
   ]
 }

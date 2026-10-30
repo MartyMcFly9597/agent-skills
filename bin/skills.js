@@ -8,14 +8,14 @@ function printHelp() {
 
 Usage:
   skills list [--source <path>]
-  skills install [target] [--with-prompts] [--force] [--dry-run] [--source <path>]
+  skills install [target] [--force] [--dry-run] [--source <path>]
   skills doctor [--source <path>]
 
 Examples:
   skills list
   skills install .
-  skills install ../my-workspace --with-prompts
-  skills install . --with-prompts --force
+  skills install ../my-workspace
+  skills install . --force
   skills doctor
 `);
 }
@@ -103,18 +103,20 @@ function listSkills(sourceRoot) {
 }
 
 function runInstall(args) {
+  if (args.includes('--with-prompts')) {
+    console.error('Unknown option: --with-prompts. This installer installs Copilot skills only.');
+    process.exitCode = 2;
+    return;
+  }
   const targetArg = args.find((a) => !a.startsWith("--"));
   const targetRoot = normalize(targetArg || process.cwd());
   const sourceRoot = normalize(getArgValue(args, "--source") || defaultSourceRoot());
-  const includePrompts = hasFlag(args, "--with-prompts");
   const force = hasFlag(args, "--force");
   const dryRun = hasFlag(args, "--dry-run");
 
   const srcSkills = path.join(sourceRoot, ".github", "skills");
-  const srcPrompts = path.join(sourceRoot, ".github", "prompts");
 
   const destSkills = path.join(targetRoot, ".github", "skills");
-  const destPrompts = path.join(targetRoot, ".github", "prompts");
 
   if (!fs.existsSync(srcSkills)) {
     console.error(`Source skills directory not found: ${srcSkills}`);
@@ -131,25 +133,10 @@ function runInstall(args) {
     process.exit(1);
   }
 
-  let promptResult = { copied: 0, skipped: 0, missing: false };
-  if (includePrompts) {
-    promptResult = copyDirRecursive(srcPrompts, destPrompts, { force, dryRun });
-  }
-
   console.log("");
   console.log("Install summary:");
   console.log(`- skills copied: ${skillResult.copied}`);
   console.log(`- skills skipped: ${skillResult.skipped}`);
-
-  if (includePrompts) {
-    console.log(`- prompts copied: ${promptResult.copied}`);
-    console.log(`- prompts skipped: ${promptResult.skipped}`);
-    if (promptResult.missing) {
-      console.log("- prompts source missing: yes");
-    }
-  } else {
-    console.log("- prompts: not included (use --with-prompts)");
-  }
 
   if (dryRun) {
     console.log("\nDry run complete. No files were written.");
@@ -161,12 +148,10 @@ function runInstall(args) {
 function runDoctor(args) {
   const sourceRoot = normalize(getArgValue(args, "--source") || defaultSourceRoot());
   const skillsDir = path.join(sourceRoot, ".github", "skills");
-  const promptsDir = path.join(sourceRoot, ".github", "prompts");
 
   console.log("skills doctor");
   console.log(`- source root: ${sourceRoot}`);
   console.log(`- skills dir: ${skillsDir} (${fs.existsSync(skillsDir) ? "ok" : "missing"})`);
-  console.log(`- prompts dir: ${promptsDir} (${fs.existsSync(promptsDir) ? "ok" : "missing"})`);
   console.log(`- node: ${process.version}`);
 }
 

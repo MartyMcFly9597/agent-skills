@@ -32,9 +32,10 @@ If required evidence is missing, report that gap rather than assuming success.
 3. For each completed `[x]` step, compare the code, tests, verification evidence, and any claimed commit with the step's `done_when`.
 4. Review the diff for scope alignment, unintended behavior changes, reuse of established patterns, and unnecessary refactoring.
 5. Check unit/component test quality, meaningful regression cases, and test-layer choice.
-6. For e2e steps, verify branch alignment, reused page objects/fixtures, coverage of visible user behavior, and whether the specific spec can run independently. If e2e is unavailable, state the gap and rationale.
-7. Confirm listed verification is current and actually passed. Rerun relevant commands when feasible; distinguish observed results from claims.
-8. Return concise findings under text headings: `issue` (must fix), `concern` (should fix or discuss), `nitpick`, `suggestion`, and `verified`.
+6. For e2e steps, verify repository branch conventions, reuse of page objects/fixtures, coverage of visible user behavior, and whether the specific spec can run independently. If e2e is unavailable, state the gap and rationale.
+7. Check unit, component, end-to-end, lint, style-lint, and build evidence as relevant to the change. Confirm commands are current and actually passed; rerun when feasible and distinguish observed results from claims.
+8. Use a reviewer distinct from the author when the environment makes one available. A different model family can add independence when available; the environment controls model choice.
+9. Return concise findings under text headings: `issue` (must fix), `concern` (should fix or discuss), `nitpick`, `suggestion`, and `verified`.
 
 ## Output contract
 
@@ -50,6 +51,6 @@ If required evidence is missing, report that gap rather than assuming success.
 - Model and tool availability are controlled by the execution environment; this skill does not enforce them.
 - Keep review examples and shared output free of organization identifiers, private endpoints, customer data, and business-specific operational details.
 
-## Source prompts
+## Related skills
 
-- Source traceability is maintained in the repository migration map, which is not included with installed skills.
+- Use `story-planner` to validate planning quality and `story-implementer` for step execution.

@@ -45,6 +45,10 @@ If the report or repository is not available, ask for it. Never fabricate issue 
 
 <stable issue identifier, if available>
 
+## Created
+
+<timestamp>
+
 ## Steps to Reproduce
 
 1. ...
@@ -98,7 +102,6 @@ If the report or repository is not available, ask for it. Never fabricate issue 
 - Each proposed fix step must include a test that would reproduce the original defect.
 - Keep organization-specific endpoints, identifiers, customer data, and business-process details out of reusable examples.
 
-## Source prompts
+## Related skills
 
-- Source traceability is maintained in the repository migration map, which is not included with installed skills.
-- See `docs/migration/MIGRATION_MAP.md` in the source repository for the migration record; this link is intentionally not relative because that document is not installed with the skill.
+- Use `bug-fix` to execute the resulting fix plan and `bug-verify` to review completed work.

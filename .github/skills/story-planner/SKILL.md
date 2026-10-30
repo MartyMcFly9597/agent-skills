@@ -28,10 +28,11 @@ If story details or repository context are missing, ask for them. Never fabricat
 ## Procedure
 
 1. Understand user-visible behavior, acceptance criteria, edge cases, constraints, and ambiguities. Create a stable story identifier from the supplied story content without copying confidential material into this reusable skill.
-2. Inspect relevant application code, tests, mocks, and repository scripts. Identify reusable behavior, affected modules, coupling, and regression risks.
-3. If a separate e2e repository exists, inspect relevant specs, page objects, fixtures, and naming patterns. Otherwise record that no separate e2e repository is configured.
-4. If `PLAN.md` exists, validate it against the current story. Preserve valid completed `[x]` steps and valid unchecked `[ ]` steps. Update only where new findings require it. If it is invalid for this story, replace it and explain why.
-5. Create or update `PLAN.md` using this structure:
+2. Inspect relevant application code, tests, mocks, fixtures, types, configuration, and repository scripts. Identify behavior to reuse, affected modules, coupling, fragile areas, regression risks, and missing coverage.
+3. Highlight in-scope patterns that could materially affect the planned change. Recommend improvements when they reduce risk, but avoid unrelated refactors.
+4. If a separate e2e repository exists, inspect relevant specs, page objects, fixtures, and naming patterns. Otherwise record that no separate e2e repository is configured.
+5. If `PLAN.md` exists, validate it against the current story. Preserve valid completed `[x]` steps and valid unchecked `[ ]` steps. Update only where new findings require it. If it is invalid for this story, replace it and explain why.
+6. Create or update `PLAN.md` using this structure:
 
 ```markdown
 # PLAN
@@ -93,13 +94,13 @@ If story details or repository context are missing, ask for them. Never fabricat
   - done_when:
 ```
 
-A step may include an optional `model:` hint only when the user has specified an available model. The hint is informational; this skill cannot enforce it.
+A step may include an optional `model:` hint only when the user has specified an available model. The hint is informational; this skill cannot enforce it. Prefer the least-complex available model that can perform the task reliably. Escalate only after a concrete reasoning or verification need appears, and return to the ordinary choice for later steps.
 
-6. Keep steps small, testable, independently executable where practical, and commit-ready. Every step has concrete `tests`, `verify`, and objective `done_when` criteria. Order work to verify behavior early and reduce regression risk.
-7. For user-facing behavior changes, plan a dedicated e2e step when an e2e environment is available. Put it after the corresponding implementation step. If e2e cannot be run or no separate repo exists, state the gap and reason.
-8. Discover test and verification commands from the consumer repository's manifests or docs. Write commands that can be run as-is; do not copy source-project commands unless confirmed present in the consumer repository.
-9. Include complexity (`small | medium | large`), rationale, and suggested execution (`single-context` or `multi-context`). Large work should be grouped into independently executable phases.
-10. Save `PLAN.md` and summarize story understanding, risks, impacted areas, plan, e2e coverage, and whether work was resumed or started fresh.
+7. Keep steps small, testable, independently executable where practical, and commit-ready. Every step has a goal, likely files, tests, executable verification commands, and objective `done_when` criteria. Order work to verify behavior early and reduce regression risk.
+8. For user-facing behavior changes, plan a dedicated e2e step when an e2e environment is available. Specify reusable page objects and fixtures, place it after the corresponding implementation step, and follow each repository's documented branch convention. If e2e cannot be run or no separate repository exists, state the gap and reason.
+9. Discover test and verification commands from the consumer repository's manifests or docs. Write commands that can be run as-is; do not copy source-project commands unless confirmed present in the consumer repository.
+10. Include complexity (`small | medium | large`), rationale, and suggested execution (`single-context` or `multi-context`). Large work should be grouped into independently executable phases.
+11. Save `PLAN.md` and summarize story understanding, risks, impacted areas, plan, e2e coverage, and whether work was resumed or started fresh.
 
 ## Output contract
 
@@ -114,6 +115,6 @@ A step may include an optional `model:` hint only when the user has specified an
 - Consider e2e coverage for user-facing behavior and document when it is unavailable.
 - Keep examples generic and never copy organization-specific identifiers, URLs, business operations, or confidential story details into reusable skill content.
 
-## Source prompts
+## Related skills
 
-- Source traceability is maintained in the repository migration map, which is not included with installed skills.
+- Use `story-implementer` to execute the plan and `story-verifier` to review completion evidence.

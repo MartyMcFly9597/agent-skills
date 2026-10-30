@@ -21,20 +21,42 @@ Perform focused pull request review on diff-only scope with severity-labeled fin
 3. Review only changed files and nearby context required for risk analysis.
 4. Prioritize correctness, regression risk, test gaps, maintainability.
 5. Classify findings as `ISSUE`, `CONCERN`, `NITPICK`, `SUGGESTION`, `PRAISE`.
-6. Write results to `reviews/pr-review-<branch>-<timestamp>.md`.
+6. When behavior changed, check whether tests were added or updated. If no meaningful issues exist, still identify at least one residual risk, edge case, or test gap.
+7. Write results to `reviews/pr-review-<branch>-<timestamp>.md`, creating the directory if needed. Use a `YYYYMMDD-HHmm` timestamp and overwrite an existing report for the same branch and timestamp.
+
+Each finding is a short bullet starting with `file:line - short label:`. Prefer one sentence and no more than two short sentences. Include a one-line code example only when it clarifies the finding. Do not review unrelated files, offer style-only feedback, or fill the report with praise.
+
+Use a reviewer distinct from the author when the environment makes one available. Model selection and tool availability are controlled by the environment; this skill cannot enforce them.
 
 ## Output contract
 
 - Return only:
   - output path
   - counts by section
+- The report contains only non-empty sections from this format:
+
+```markdown
+# PR Review - <branch>
+
+## Issues
+- ISSUE: `file:line - short label:` finding
+
+## Concerns
+- CONCERN: `file:line - short label:` finding
+
+## Nitpicks
+- NITPICK: `file:line - short label:` finding
+
+## Suggestions
+- SUGGESTION: `file:line - short label:` finding
+
+## Praise
+- PRAISE: `file:line - short label:` finding
+```
 
 ## Non-negotiable rules
 
 - Do not review unrelated files.
 - Do not generate filler comments.
 - Call out missing behavior coverage when behavior changes.
-
-## Source prompt
-
-- `.github/prompts/pr-review.md`
+- Write the review to disk before reporting its path and section counts.

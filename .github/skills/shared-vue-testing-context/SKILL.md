@@ -11,17 +11,14 @@ Provide repository-wide Vue testing conventions to be reused by testing and bug-
 
 ## Context contract
 
-- Stack:
-  - Vue 3
-  - TypeScript
-  - PrimeVue
-  - Testing Library
-  - Playwright for E2E
+- Use the consumer application's actual versions and test stack. Common examples include Vue 3, TypeScript, PrimeVue, Testing Library, and Playwright for end-to-end tests.
 - Team expectations:
   - minimal diffs
   - black-box tests only
   - user-facing selectors first
   - avoid PrimeVue internals
+- Prefer real interactions and observable outcomes over mocks that remove the behavior under test.
+- For component/integration tests, use Testing Library's `render`; do not use `mount`.
 
 ## Preferred selector order
 
@@ -34,7 +31,3 @@ Provide repository-wide Vue testing conventions to be reused by testing and bug-
 ## Output contract
 
 - Any dependent skill should explicitly state it is following this context.
-
-## Source prompt
-
-- `.github/prompts/vue/vue-testing-shared-context.md`

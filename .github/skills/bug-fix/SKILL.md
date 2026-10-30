@@ -51,7 +51,6 @@ If `BUGFIX.md` is absent or invalid, stop and request the investigation workflow
 - Avoid unrelated refactors and do not claim a tool/model restriction that the Copilot skill cannot enforce.
 - Keep organization-specific endpoints, identifiers, customer data, and business-process details out of reusable examples and shared output.
 
-## Source prompts
+## Related skills
 
-- Source traceability is maintained in the repository migration map, which is not included with installed skills.
-- See `docs/migration/MIGRATION_MAP.md` in the source repository for the migration record; this link is intentionally not relative because that document is not installed with the skill.
+- Use `bug-investigate` to prepare a confirmed root cause and fix plan; use `bug-verify` to review completed work.

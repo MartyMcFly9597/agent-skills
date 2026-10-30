@@ -31,11 +31,10 @@ These skills are explicitly invoked. They describe workflow behavior but do not 
 
 ## Install Into a Workspace
 
-The repository's local installer copies skills to the Copilot workspace location `.github/skills`. Add `--with-prompts` only when Local-harness compatibility prompt files are also needed; prompt files are not Copilot harness workflow entrypoints.
+The repository's installer copies skills to the Copilot workspace location `.github/skills`.
 
 ```powershell
 npm run skills:install -- C:\path\to\workspace
-npm run skills:install -- C:\path\to\workspace --with-prompts
 ```
 
 The installer is invoked from this repository. It supports `--force`, `--dry-run`, and `--source <path>`.
@@ -44,7 +43,7 @@ The installer is invoked from this repository. It supports `--force`, `--dry-run
 
 ```powershell
 node bin/skills.js list
-node bin/skills.js install C:\path\to\workspace --with-prompts
+node bin/skills.js install C:\path\to\workspace
 node bin/skills.js doctor
 ```
 
@@ -54,7 +53,7 @@ node bin/skills.js doctor
 
 Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter containing a unique lowercase, hyphenated `name` matching the folder and a `description` stating what the skill does and when to use it. Explicit workflows should include `disable-model-invocation: true`. Keep all skills and supporting examples organization-neutral.
 
-See `.github/skills/README.md` for the authoring baseline and `.github/prompts/README.md` for Local-only prompt conventions. The full migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` in this repository; it is not included in npm packages.
+See `.github/skills/README.md` for the authoring baseline. Workflow instructions live in `.github/skills`; no prompt-file copies are maintained. The migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` and is not included in npm packages.
 
 Run the repository checks with:
 

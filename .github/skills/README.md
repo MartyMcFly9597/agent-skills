@@ -35,9 +35,11 @@ Use this baseline structure unless the skill needs extra sections:
 4. `Procedure`
 5. `Output contract`
 6. `Non-negotiable rules`
-7. `Source prompts`
+7. `Related skills` when a workflow has a direct handoff to another skill
 
 ## Authoring Rules
 
-- Preserve source traceability in `Source prompts` using repository-relative source descriptions and the canonical migration map. Do not link to files that are not shipped with the skill.
+- Keep each skill self-contained; do not make a skill depend on another skill being implicitly loaded.
+- Use `Related skills` for explicit workflow handoffs, not to duplicate another skill's instructions.
+- Record migration provenance in the repository migration map, not in every installed skill.
 - Keep public repository content generic; do not include organization names, private URLs, customer data, business operations, or internal policy details.

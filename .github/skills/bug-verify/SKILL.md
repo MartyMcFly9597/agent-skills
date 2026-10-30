@@ -27,12 +27,13 @@ If critical context or evidence is unavailable, report the gap; do not infer a p
 ## Procedure
 
 1. Validate that `BUGFIX.md` describes the same defect and has a specific, code-supported root cause.
-2. For every completed step, check its `goal`, changed files, tests, verification, and `done_when` against the actual diff and test results.
-3. Confirm a regression test exercises the original failure, would have failed before the fix, and now passes. Review relevant edge cases and existing regression tests.
+2. For every completed step, check its `goal`, changed files, tests, verification, and `done_when` against the actual diff and results.
+3. Confirm a regression test exercises the original failure, plausibly fails before the fix, and passes after. Review relevant edge cases and existing coverage.
 4. Check that the implementation addresses the root cause rather than masking symptoms and stays within the approved scope.
-5. Confirm current verification evidence for the affected tests and any listed lint/build checks. Rerun commands when feasible; distinguish observed results from claims.
-6. Review residual regression risks and any end-to-end coverage needed for user-visible behavior. If a separate e2e repository is unavailable, state that explicitly rather than inventing evidence.
-7. Return concise findings under these text headings: `issue` (must fix), `concern` (discuss or fix), `nitpick`, `suggestion`, and `verified`. Do not use icons that imply a platform-enforced severity contract.
+5. Confirm current evidence for affected tests and applicable lint/build checks. Rerun commands when feasible; distinguish observed results from claims.
+6. Review residual regression risks and end-to-end coverage needed for user-visible behavior. If the required e2e environment is unavailable, state that explicitly.
+7. Use a reviewer distinct from the author when available. A different model family can add independence when available; the environment controls model choice.
+8. Return concise findings under `issue`, `concern`, `nitpick`, `suggestion`, and `verified`. State whether the fix passes, fails, or cannot be verified.
 
 ## Output contract
 
@@ -47,7 +48,6 @@ If critical context or evidence is unavailable, report the gap; do not infer a p
 - Do not claim a separate model vendor or tool set was enforced by this skill.
 - Keep organization-specific endpoints, identifiers, customer data, and business-process details out of reusable examples and shared output.
 
-## Source prompts
+## Related skills
 
-- Source traceability is maintained in the repository migration map, which is not included with installed skills.
-- See `docs/migration/MIGRATION_MAP.md` in the source repository for the migration record; this link is intentionally not relative because that document is not installed with the skill.
+- Use `bug-investigate` to establish root cause and `bug-fix` to execute the fix plan.

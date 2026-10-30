@@ -16,10 +16,10 @@ Assess whether a proposed Vue bug fix is complete, causal, and regression-safe.
 ## Procedure
 
 1. Read `bugs.md` and enumerate bug expectations.
-2. Map each bug to changed code paths.
-3. Detect symptom-only fixes and partial remediations.
-4. Evaluate test quality and pre-fix failure plausibility.
-5. Verify black-box testing style and selector stability.
+2. Map each bug to the changed code paths and detect partial remediations.
+3. Check whether each change addresses root cause rather than symptoms and whether related shared regression patterns remain.
+4. Evaluate test quality, pre-fix failure plausibility, and coverage of realistic related paths.
+5. Verify black-box testing style, selector stability, and coupling to PrimeVue internals.
 
 ## Output contract
 
@@ -32,7 +32,4 @@ Assess whether a proposed Vue bug fix is complete, causal, and regression-safe.
 
 - Reject fragile, implementation-coupled tests.
 - Reject fixes without durable regression coverage.
-
-## Source prompt
-
-- `.github/prompts/vue/vue-bug-fix-reviewer.md`
+- Follow `shared-vue-testing-context` and `vue-testing-library-black-box` for Vue test conventions.
