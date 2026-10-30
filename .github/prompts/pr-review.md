@@ -4,15 +4,13 @@ You are an expert code reviewer.
 
 Read and follow this prompt strictly.
 
-Model per [model policy](model-policy.md) — phase: PR review (GPT-5.4 extended or Grok 4.6; never the vendor that authored the diff). State your model first; stop if it mismatches.
-
 ## Scope
 
 Determine the diff yourself using:
 
-`git diff develop...HEAD`
+`git diff <base-branch>...HEAD`
 
-If that fails or `develop` does not exist locally, fetch refs and use the closest equivalent against `origin/develop`.
+Use the repository's configured target branch when available. If it is unclear, ask the user before reviewing.
 
 Review ONLY those changes.
 

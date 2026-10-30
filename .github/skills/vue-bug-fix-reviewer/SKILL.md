@@ -35,4 +35,4 @@ Assess whether a proposed Vue bug fix is complete, causal, and regression-safe.
 
 ## Source prompt
 
-- `.codex/prompts/vue/vue-bug-fix-reviewer.md`
+- `.github/prompts/vue/vue-bug-fix-reviewer.md`

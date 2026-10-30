@@ -1,48 +1,55 @@
-# Skill: Story Verifier
+---
+name: story-verifier
+description: Independently verify a completed story against PLAN.md, its acceptance criteria, tests, and current evidence. Use as the final gate before accepting story work.
+argument-hint: "Story key or PLAN.md"
+disable-model-invocation: true
+---
+
+# Story Verifier
 
 ## Purpose
 
-Gate story completion by validating plan integrity, implementation quality, test strength, and verification evidence.
+Provide a strict, evidence-based gate review of story implementation, tests, regression risk, and plan completion.
 
 ## When to use
 
-- A planned story has been implemented and needs objective validation.
-- Completed checklist items need audit.
+- A planned story has been implemented and needs objective verification.
+- Completed checklist items need a fresh audit before acceptance.
 
 ## Required inputs
 
 - `PLAN.md`.
-- Jira story details.
-- Code and tests in repository.
-- Verification logs or rerunnable commands.
+- Story details from an available issue-tracker integration, or pasted by the user.
+- Application changes, tests, and current verification output or rerunnable commands.
+- Optional separate e2e repository when the plan includes `repo: e2e` steps.
+
+If required evidence is missing, report that gap rather than assuming success.
 
 ## Procedure
 
-1. Validate `PLAN.md` exists and matches Jira story.
-2. Confirm each completed step has clear `goal`, `files`, `tests`, `verify`, `done_when`.
-3. Audit code changes against story scope and patterns.
-4. Check unit tests for completed SPA steps and regression coverage.
-5. Check e2e tests exist for user-facing acceptance criteria.
-6. Verify e2e branch exists and matches SPA branch name.
-7. Confirm verification evidence is present and current.
-8. Flag unsupported checklist completion.
+1. Validate that `PLAN.md` is present and matches the supplied story details.
+2. Check that steps are small and have concrete `goal`, `files`, `tests`, `verify`, and `done_when` fields. Confirm e2e steps exist for user-facing acceptance criteria when an e2e environment is available.
+3. For each completed `[x]` step, compare the code, tests, verification evidence, and any claimed commit with the step's `done_when`.
+4. Review the diff for scope alignment, unintended behavior changes, reuse of established patterns, and unnecessary refactoring.
+5. Check unit/component test quality, meaningful regression cases, and test-layer choice.
+6. For e2e steps, verify branch alignment, reused page objects/fixtures, coverage of visible user behavior, and whether the specific spec can run independently. If e2e is unavailable, state the gap and rationale.
+7. Confirm listed verification is current and actually passed. Rerun relevant commands when feasible; distinguish observed results from claims.
+8. Return concise findings under text headings: `issue` (must fix), `concern` (should fix or discuss), `nitpick`, `suggestion`, and `verified`.
 
 ## Output contract
 
-- Group concise findings by severity:
-  - issue: must fix
-  - concern: should fix or discuss
-  - nitpick: minor
-  - suggestion: improvement
-  - verified: good
+- State whether the plan passes, fails, or cannot be verified with available evidence.
+- Reference concrete files and evidence; do not trust `[x]` without proof.
+- Call out missing tests, stale/missing verification, or unresolved regression risks.
 
 ## Non-negotiable rules
 
-- Do not pass without verification evidence.
-- Do not trust checklist completion without code and test proof.
-- Do not pass user-facing stories without e2e coverage.
+- No pass without current verification evidence.
+- No pass when the plan is out of sync or a completed step fails its `done_when`.
+- Do not pass user-facing work with missing e2e coverage unless the plan records a justified unavailable environment.
+- Model and tool availability are controlled by the execution environment; this skill does not enforce them.
+- Keep review examples and shared output free of organization identifiers, private endpoints, customer data, and business-specific operational details.
 
 ## Source prompts
 
-- `.codex/prompts/story/verify.md`
-- `.codex/prompts/story-agent.md`
+- Source traceability is maintained in the repository migration map, which is not included with installed skills.

@@ -2,6 +2,8 @@
 
 You are responsible ONLY for executing `BUGFIX.md` step-by-step.
 
+In the Copilot harness, invoke `/bug-fix`; this prompt remains for Local compatibility.
+
 You DO NOT create a new investigation unless `BUGFIX.md` is missing or invalid.
 You DO NOT skip steps.
 
@@ -10,7 +12,7 @@ You DO NOT skip steps.
 ## Before executing
 
 - Read `BUGFIX.md`
-- Verify it matches the Jira bug retrieved via the `jira` MCP connection
+- Verify it matches the issue-tracker item when an integration is available; otherwise compare it with the bug details provided by the user.
 - Confirm the root cause analysis is sound by re-reading the identified code paths
 - Find the first unchecked `[ ]` step
 
@@ -42,8 +44,8 @@ Every fix MUST include tests that:
 - Cover edge cases and permutations of the failing scenario
 - Verify the fix doesn't break existing behaviour
 - Are placed appropriately:
-  - Unit tests: for logic bugs in utils, composables, services
-  - Component tests: for rendering/reactivity bugs in Vue components
+  - Unit tests: for isolated logic, services, and data transformations
+  - Component tests: for rendering, state, and interaction behavior in UI components
   - E2E tests: for user-flow integration bugs
 
 ---

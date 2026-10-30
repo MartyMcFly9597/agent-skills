@@ -12,12 +12,12 @@ Perform focused pull request review on diff-only scope with severity-labeled fin
 ## Required inputs
 
 - Git repository with a feature branch.
-- Baseline branch: `develop` or `origin/develop`.
+- Configured target branch; ask which branch to use if the repository does not identify one.
 
 ## Procedure
 
-1. Compute diff with `git diff develop...HEAD`.
-2. If `develop` is unavailable, fetch and use `origin/develop...HEAD`.
+1. Compute the diff with `git diff <target-branch>...HEAD`.
+2. Use the repository's configured target branch; ask the user if it is unclear.
 3. Review only changed files and nearby context required for risk analysis.
 4. Prioritize correctness, regression risk, test gaps, maintainability.
 5. Classify findings as `ISSUE`, `CONCERN`, `NITPICK`, `SUGGESTION`, `PRAISE`.

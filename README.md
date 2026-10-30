@@ -1,90 +1,69 @@
 # agent-skills
 
-Reusable skills and prompts for agent workflows.
+Reusable, explicitly invoked agent skills for software planning, implementation, review, and testing. This is a public repository; contributions must contain only generic workflow guidance with no organization-specific or business-operation details.
 
-## Repository layout
+## Copilot Workflows
 
-```
-.github/
-  skills/          # Skill packages (one SKILL.md per directory)
-  prompts/         # Agent prompts (role instructions for direct invocation)
-  agents/          # Custom agent definitions for this repo
-bin/               # Skills CLI
-```
+Use the Copilot harness slash commands for phase workflows:
 
-## Using skills in another repo
+| Workflow | Commands |
+| --- | --- |
+| Story | `/story-planner` → `/story-implementer` → `/story-verifier` |
+| Bug | `/bug-investigate` → `/bug-fix` → `/bug-verify` |
 
-### Option 1: Symlink (recommended for local development)
+These skills are explicitly invoked. They describe workflow behavior but do not enforce model selection or tool availability. Issue-tracker and optional e2e capabilities must be configured by the consuming workspace. If a tracker integration is unavailable, provide the issue details directly.
 
-From your project root, symlink `.codex/skills` and `.codex/prompts` to this repo:
-
-```bash
-# From your project repo (adjust relative path as needed)
-ln -s ../../../agent-skills/.github/skills .codex/skills
-ln -s ../../../agent-skills/.github/prompts .codex/prompts
-```
-
-Changes in `agent-skills` are reflected immediately — no copy or sync step.
-
-### Option 2: CLI install (copies files into target repo)
-
-```bash
-# Local usage (from this repo)
-npm install
-npm run skills:install -- /path/to/target --with-prompts
-
-# Or link globally
-npm link
-skills install /path/to/target --with-prompts
-
-# npx (after npm publish)
-npx @martymcfly9597/agent-skills install /path/to/target --with-prompts
-```
-
-### Option 3: Manual copy
-
-Copy `.github/skills/` and `.github/prompts/` into your project's `.codex/` or `.github/` directory.
-
-## Available skills
+## Available Skills
 
 | Skill | Purpose |
-|-------|---------|
-| `story-planner` | Plan a Jira story into a testable PLAN.md checklist |
-| `story-implementer` | Execute PLAN.md one step at a time with verification |
-| `story-verifier` | Gate story completion with strict review |
-| `pr-review` | Diff-scoped pull request review with severity labels |
-| `shared-vue-testing-context` | Shared testing constraints for Vue component tests |
+| --- | --- |
+| `story-planner` | Plan a story into a small, testable `PLAN.md` checklist |
+| `story-implementer` | Execute the next plan step with tests and verification |
+| `story-verifier` | Gate story completion against plan, tests, and evidence |
+| `bug-investigate` | Confirm a defect's root cause and prepare `BUGFIX.md` |
+| `bug-fix` | Execute one test-first bug-fix step at a time |
+| `bug-verify` | Independently verify root cause, regression tests, and evidence |
+| `pr-review` | Review a pull request diff for correctness and regression risk |
+| `shared-vue-testing-context` | Shared constraints for Vue component tests |
 | `vue-testing-library-black-box` | Black-box Vue component testing with Testing Library |
-| `vue-bug-fixer-regression-guard` | Bug fix with regression guard tests |
-| `vue-bug-fix-reviewer` | Review bug fix PRs for quality and regression risk |
+| `vue-bug-fixer-regression-guard` | Vue bug fixing with durable regression tests |
+| `vue-bug-fix-reviewer` | Review Vue bug fixes for causal correctness and regression risk |
 
-## CLI commands
+## Install Into a Workspace
 
-| Command | Description |
-|---------|-------------|
-| `skills list` | List available skill packages |
-| `skills install [target]` | Copy skills into target workspace |
-| `skills install [target] --with-prompts` | Also copy prompts |
-| `skills doctor` | Print environment and source directory checks |
+The repository's local installer copies skills to the Copilot workspace location `.github/skills`. Add `--with-prompts` only when Local-harness compatibility prompt files are also needed; prompt files are not Copilot harness workflow entrypoints.
 
-Flags: `--force` (overwrite), `--dry-run` (preview), `--source <path>` (override source root).
-
-## Maintaining this repo
-
-### Adding a skill
-
-1. Create `.github/skills/<skill-name>/SKILL.md`.
-2. If the skill has a companion prompt, create `.github/prompts/<name>.md`.
-3. Update the table in this README.
-
-### Skill structure
-
-```
-.github/skills/<skill-name>/
-  SKILL.md              # Required — purpose, when to use, procedure, output contract, rules
-  supporting-file.*     # Optional — heavy reference or reusable tools
+```powershell
+npm run skills:install -- C:\path\to\workspace
+npm run skills:install -- C:\path\to\workspace --with-prompts
 ```
 
-### Branching
+The installer is invoked from this repository. It supports `--force`, `--dry-run`, and `--source <path>`.
 
-One feature branch per change, one PR per branch, target `main`.
+## Local CLI
+
+```powershell
+node bin/skills.js list
+node bin/skills.js install C:\path\to\workspace --with-prompts
+node bin/skills.js doctor
+```
+
+`list` lists skill package directories in this source repository; it does not list skills installed in another agent. Upstream `npx skills` is a separate CLI.
+
+## Authoring
+
+Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter containing a unique lowercase, hyphenated `name` matching the folder and a `description` stating what the skill does and when to use it. Explicit workflows should include `disable-model-invocation: true`. Keep all skills and supporting examples organization-neutral.
+
+See `.github/skills/README.md` for the authoring baseline and `.github/prompts/README.md` for Local-only prompt conventions. The full migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` in this repository; it is not included in npm packages.
+
+Run the repository checks with:
+
+```powershell
+npm run check
+```
+
+For migration and provenance, see the migration map. Its supporting-source inventory is extended by the companion inventory work item.
+
+## Contributions
+
+Use one feature branch and one pull request per focused change, targeting `main`. Review the entire public diff for organization-specific names, private endpoints, customer data, business processes, and internal policy details before opening a pull request.

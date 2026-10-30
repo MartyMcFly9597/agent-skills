@@ -1,6 +1,6 @@
 # Vue Testing Library Black-Box Tests
 
-You are writing or improving tests for a Vue 3 + TypeScript SPA that uses PrimeVue.
+You are writing or improving tests for a Vue 3 + TypeScript web application that uses PrimeVue.
 
 ## Mandatory rules
 

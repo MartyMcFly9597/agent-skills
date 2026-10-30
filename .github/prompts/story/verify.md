@@ -6,13 +6,9 @@ You DO NOT trust the implementer.
 
 ---
 
-## Model policy (ENFORCED)
+## Independent review
 
-Follow the [model policy](../model-policy.md) — phase: **verify / gate review**.
-
-- Run on GPT-5.4 (extended thinking) or Grok 4.6 — NEVER an Anthropic model: Claude authors the code, and author vendor must not verify its own work.
-- If running as an Anthropic model, STOP and ask the user to switch.
-- Flag any step executed on a wrong tier, and any Restricted-tier usage without recorded approval in PLAN.md.
+Use a reviewer distinct from the author when the execution environment makes one available. Model selection and tool access are configured by the user or environment; this prompt cannot enforce or validate them. Report missing model/tool capabilities as limitations rather than claiming enforcement.
 
 ---
 
@@ -21,7 +17,7 @@ Follow the [model policy](../model-policy.md) — phase: **verify / gate review*
 Validate:
 
 - `PLAN.md` integrity
-- implementation correctness (SPA repo)
+- implementation correctness (application repository)
 - e2e test coverage (e2e repo)
 - unit test coverage
 - regression safety
@@ -34,11 +30,11 @@ Validate:
 ### 1. PLAN integrity
 
 - `PLAN.md` exists
-- it matches the Jira story retrieved via the `jira` MCP connection
+- it matches the story retrieved through the available issue-tracker integration, or user-provided story details
 - steps are small and clear
 - each step has:
   - goal
-  - model (from the model policy phase table)
+  - an optional model hint, if included; treat it as informational only
   - files
   - tests
   - verify
@@ -50,7 +46,7 @@ Validate:
 
 ### 2. Implementation correctness
 
-- changes match the Jira story retrieved via the `jira` MCP connection
+- changes match the story retrieved through the available issue-tracker integration, or user-provided story details
 - no unintended behavior changes
 - existing patterns are followed
 - no unnecessary out-of-scope refactors
@@ -64,7 +60,7 @@ For every `[x]` step:
 - verify the code and tests actually satisfy `done_when`
 - verify the claimed files/tests/verification make sense
 - confirm there is a git commit (or explicit rationale) covering the step before the next one begins; flag when work remains uncommitted despite `[x]` in PLAN.md
-- for e2e steps: verify the commit exists in the e2e repo on the matching branch
+- for e2e steps: verify the commit exists in the separate e2e repository and follows its documented branch convention
 - if a step is marked complete without sufficient evidence, flag it
 - if a step is marked `[x]` but `done_when` is vague or not testable, flag it
 
@@ -72,7 +68,7 @@ For every `[x]` step:
 
 ### 4. Tests
 
-- unit tests exist for each completed SPA step
+- unit tests exist for each completed application step
 - e2e tests exist for user-facing acceptance criteria
 - tests are meaningful, not shallow
 - regression cases are covered where appropriate
@@ -82,11 +78,11 @@ For every `[x]` step:
 
 ### 5. E2E coverage
 
-- Matching branch exists in the e2e repo
+- The documented branch convention is followed when a separate e2e repository is used
 - E2E specs cover the story's acceptance criteria
 - Page objects are reused/extended correctly
 - Fixtures follow established patterns
-- Tests can be run independently with `npx playwright test <spec>`
+- The repository documents a runnable command for the relevant e2e tests
 - No tests that only validate mocked responses without page interaction
 
 ---

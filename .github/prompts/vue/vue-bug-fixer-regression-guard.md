@@ -2,7 +2,7 @@
 
 Use this prompt when bugs have been reported and you need to investigate, fix them properly, and add durable regression coverage.
 
-A `bugs.md` file will contain one or more bug reports copied from Jira.
+A `bugs.md` file will contain one or more bug reports from an available issue-tracker integration or supplied by the user.
 
 ## Primary objectives
 

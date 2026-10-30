@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 function printHelp() {
   console.log(`skills - install and manage workspace skills
@@ -51,44 +51,33 @@ function copyFile(src, dest, force) {
   return { copied: true, skipped: false };
 }
 
+function processCopyEntry(srcPath, destPath, entry, options) {
+  if (entry.isDirectory()) return copyDirRecursive(srcPath, destPath, options);
+  if (!entry.isFile()) return { copied: 0, skipped: 0, missing: false };
+  if (options.dryRun) {
+    const skipped = fs.existsSync(destPath) && !options.force;
+    return { copied: Number(!skipped), skipped: Number(skipped), missing: false };
+  }
+  const result = copyFile(srcPath, destPath, options.force);
+  return { copied: Number(result.copied), skipped: Number(result.skipped), missing: false };
+}
+
 function copyDirRecursive(srcDir, destDir, options) {
+  if (!fs.existsSync(srcDir)) return { copied: 0, skipped: 0, missing: true };
+
   let copied = 0;
   let skipped = 0;
-
-  if (!fs.existsSync(srcDir)) {
-    return { copied, skipped, missing: true };
-  }
-
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   for (const entry of entries) {
-    const srcPath = path.join(srcDir, entry.name);
-    const destPath = path.join(destDir, entry.name);
-
-    if (entry.isDirectory()) {
-      const nested = copyDirRecursive(srcPath, destPath, options);
-      copied += nested.copied;
-      skipped += nested.skipped;
-      continue;
-    }
-
-    if (!entry.isFile()) {
-      continue;
-    }
-
-    if (options.dryRun) {
-      if (fs.existsSync(destPath) && !options.force) {
-        skipped += 1;
-      } else {
-        copied += 1;
-      }
-      continue;
-    }
-
-    const result = copyFile(srcPath, destPath, options.force);
-    if (result.copied) copied += 1;
-    if (result.skipped) skipped += 1;
+    const result = processCopyEntry(
+      path.join(srcDir, entry.name),
+      path.join(destDir, entry.name),
+      entry,
+      options,
+    );
+    copied += result.copied;
+    skipped += result.skipped;
   }
-
   return { copied, skipped, missing: false };
 }
 

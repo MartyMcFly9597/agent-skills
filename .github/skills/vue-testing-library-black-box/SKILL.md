@@ -34,4 +34,4 @@ Create resilient Vue tests using Testing Library from the user perspective.
 
 ## Source prompt
 
-- `.codex/prompts/vue/vue-testing-library-black-box.md`
+- `.github/prompts/vue/vue-testing-library-black-box.md`

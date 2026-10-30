@@ -40,4 +40,4 @@ Investigate and fix Vue bugs by root cause and add durable black-box regression 
 
 ## Source prompt
 
-- `.codex/prompts/vue/vue-bug-fixer-regression-guard.md`
+- `.github/prompts/vue/vue-bug-fixer-regression-guard.md`

@@ -37,4 +37,4 @@ Provide repository-wide Vue testing conventions to be reused by testing and bug-
 
 ## Source prompt
 
-- `.codex/prompts/vue/vue-testing-shared-context.md`
+- `.github/prompts/vue/vue-testing-shared-context.md`

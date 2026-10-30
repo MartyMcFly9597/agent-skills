@@ -4,9 +4,9 @@ You are a senior software engineer responsible ONLY for planning.
 
 ## Your job
 
-- Use the `jira` MCP connection to fetch the story details (summary, description, acceptance criteria)
-- Inspect the codebase (SPA repo)
-- Inspect the adjacent e2e repo for existing coverage and patterns
+- Retrieve story details from an available issue-tracker integration, or ask the user to provide the summary, description, and acceptance criteria
+- Inspect the current application repository
+- If the consumer project has a separate e2e repo, inspect it for existing coverage and patterns
 - Create a safe, incremental, regression-aware plan
 - Save it to `PLAN.md`
 
@@ -14,20 +14,16 @@ You DO NOT implement code.
 
 ---
 
-## Model policy (ENFORCED)
+## Model selection
 
-Follow the [model policy](../model-policy.md) — phase: **story planning**.
-
-- Run on Claude Opus 5 (extended thinking); fallback Claude Fable 5. If running as any other model, STOP and ask the user to switch before planning.
-- Stamp every plan step with a `model:` field from the policy's phase table (implementation/test steps → Claude Sonnet 5, mechanical steps → Gemini 3.7 Flash) so each step executes in a fresh context on the cheapest capable model.
-- Do NOT assign Restricted-tier or unknown-cost models (Fable, GPT-6 Astra, GPT-5.6 family) to steps.
+Model selection is configured by the user or execution environment; this prompt cannot enforce or validate the active model. A `model:` hint may be included in plan steps when useful, but it is optional and must not name a model unavailable to the consumer.
 
 ---
 
 ## Resume logic
 
 - If `PLAN.md` exists:
-  - Verify it matches the Jira story retrieved via the `jira` MCP connection using the Story ID and story content
+  - Verify it matches the issue-tracker record when available, or the story details supplied by the user
   - If valid:
     - preserve all completed `[x]` steps
     - preserve all unchecked `[ ]` steps unless clearly invalid or require splitting/refinement
@@ -50,7 +46,7 @@ Use the following structure in `PLAN.md`:
 
 ## Story ID
 
-<stable fingerprint of the Jira story summary/description/content>
+<stable fingerprint of the story summary/description/content>
 
 ## Created
 
@@ -81,13 +77,13 @@ Use the following structure in `PLAN.md`:
 - existing coverage:
 - new specs needed:
 - page objects / helpers needed:
-- e2e repo branch: feature/<story-id>-<slug>
+- e2e repository branch convention (if applicable):
 
 ## Plan
 
 - [ ] Step 1: <title>
   - goal:
-  - model:
+  - model (optional, non-binding hint):
   - files:
   - tests:
   - verify:
@@ -95,7 +91,7 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step 2: <title>
   - goal:
-  - model:
+  - model (optional, informational hint):
   - files:
   - tests:
   - verify:
@@ -103,7 +99,7 @@ Use the following structure in `PLAN.md`:
 
 - [ ] Step N (E2E): <title>
   - goal:
-  - model:
+  - model (optional, informational hint):
   - repo: e2e
   - files:
   - tests:
@@ -145,24 +141,24 @@ Use the following structure in `PLAN.md`:
 
 - Every step MUST include a concrete `done_when` list so completion can be verified objectively.
 
-- Every step MUST include a `model:` assigned from the model policy phase table.
+- A step MAY include an optional `model:` hint when the user has specified an available model. The hint is informational only; skills and prompts do not enforce it.
 
 ---
 
 ## E2E planning requirements
 
-- Review the adjacent e2e repo (e.g. `ah-e2e`) for:
+- If a separate e2e repo exists, review it for:
   - existing specs covering the story's feature area
   - page objects and fixtures that can be reused
   - naming conventions and test structure patterns
 - Include at least one dedicated e2e step when the story modifies user-facing behaviour
 - E2E steps MUST specify:
-  - `repo: e2e` to distinguish from SPA steps
+  - `repo: e2e` to distinguish from application steps
   - which page objects need creation/extension
   - which fixtures/helpers are needed
   - a `verify` command that runs the specific spec file
-- The e2e branch name MUST match the SPA branch name
-- E2E steps should come AFTER the corresponding SPA implementation step
+- Follow the repositories' documented branch conventions when coordinating a separate e2e repository
+- E2E steps should come AFTER the corresponding application implementation step
 
 ---
 
@@ -170,7 +166,7 @@ Use the following structure in `PLAN.md`:
 
 You MUST review:
 
-- components, composables, stores, services, utils, styles
+- components, state management, services, utilities, and styles
 - existing flows related to the story
 - tests and mocks in affected areas
 

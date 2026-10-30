@@ -1,20 +1,22 @@
 ---
-description: "Investigate a Jira bug, trace root cause, assess test gaps, and create BUGFIX.md"
+description: "Investigate a defect, confirm its root cause, assess test gaps, and prepare BUGFIX.md"
 name: "Bug Investigate"
-argument-hint: "Jira bug key or URL"
+argument-hint: "Issue key or bug details"
 agent: "agent"
 ---
-Investigate this bug: ${input:arg1}
+Investigate the reported defect: ${input:arg1}
 
-Follow [bug investigation spec](../../.codex/prompts/bug/investigate.md).
-Model per [model policy](model-policy.md) — phase: bug investigation (Claude Sonnet 5, standard; escalate to Claude Opus 5 extended only if root cause resists two attempts). State your model first; stop if it mismatches.
+This prompt is retained for Local-harness compatibility. In the Copilot harness, invoke `/bug-investigate` instead; the skill is the canonical workflow.
 
-Required output:
-- Write BUGFIX.md with confirmed root cause, test gap analysis, and fix plan
-- Provide concise summary of bug understanding, root cause evidence, and fix scope
+## Investigation only
 
-Hard constraints:
-- Investigation only (no implementation)
-- Root cause must be confirmed by tracing code, not guessed
-- Every fix step must include tests that reproduce the original bug
-- Assess whether unit tests, e2e tests, or both are needed
+- Retrieve the report through an available issue-tracker integration, or ask the user to paste the summary, reproduction steps, expected behavior, and actual behavior.
+- Trace the actual code and test paths. Confirm the root cause before proposing a fix; do not implement changes.
+- Assess relevant unit/component and, when available, end-to-end coverage. Explain the test gap and regression risks.
+- Prepare `BUGFIX.md` with the complete template: Bug, Bug ID (if available), Steps to Reproduce, Expected Behaviour, Actual Behaviour, Root Cause, Existing Test Coverage, Regression Risks, and Fix Plan. Every fix step must contain `goal`, `files`, `tests`, `verify`, and `done_when`.
+- Use exact commands discovered from the current repository. If tracker/e2e access or required details are unavailable, state the limitation and ask for the missing input; never fabricate it.
+- Keep this reusable workflow generic. Do not copy company names, private endpoints, customer data, business operations, or internal identifiers into examples or `BUGFIX.md` templates.
+
+## Output
+
+Write or update `BUGFIX.md` and summarize the confirmed root cause, test gaps, fix scope, and remaining uncertainty. Do not implement the fix.

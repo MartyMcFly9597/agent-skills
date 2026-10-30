@@ -1,24 +1,22 @@
 ---
-description: "Strictly verify BUGFIX.md progress, root cause validity, and test coverage"
+description: "Verify BUGFIX.md root cause, regression tests, scope, and current evidence"
 name: "Bug Verify"
-argument-hint: "Jira bug key or URL"
+argument-hint: "Issue key or BUGFIX.md"
 agent: "agent"
 ---
-Verify fix quality for this bug: ${input:arg1}
+Verify the completed bug fix: ${input:arg1}
 
-Follow [bug verification spec](../../.codex/prompts/bug/verify.md).
-Model per [model policy](model-policy.md) — phase: verify / gate review (GPT-5.4 extended or Grok 4.6 — never the vendor that authored the fix). State your model first; stop if it mismatches.
+This prompt is retained for Local-harness compatibility. In the Copilot harness, invoke `/bug-verify` instead; the skill is the canonical workflow.
 
-Required checks:
-- BUGFIX.md integrity and root cause accuracy
-- Fix correctness against root cause
-- Test coverage: tests must reproduce the original bug
-- Regression safety
-- Verification evidence freshness
+## Gate review
 
-Output format:
-- 🚫 issue: must fix
-- ⚠️ concern: should fix or discuss
-- ⛏️ nitpick: minor
-- 💡 suggestion: improvement
-- ✅ verified: good
+- Validate `BUGFIX.md` against the supplied report and confirm the root cause is specific and supported by the code path.
+- Check that the fix addresses the root cause, stays in scope, and includes a regression test that would have failed before the fix.
+- Review relevant edge cases, existing tests, and regression risk.
+- Confirm the listed verification evidence is current; rerun commands when feasible and distinguish observed results from claims.
+- Review e2e coverage for user-visible behavior when an e2e environment is available. If unavailable, state the gap and reason.
+- Do not pass incomplete steps or trust `[x]` without evidence.
+
+## Output
+
+Return concise findings under: `issue` (must fix), `concern`, `nitpick`, `suggestion`, and `verified`. State whether the fix passes, fails, or cannot be verified. Do not claim a reviewer model or tool restriction was enforced.

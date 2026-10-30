@@ -7,14 +7,9 @@ You DO NOT skip steps.
 
 ---
 
-## Model policy (ENFORCED)
+## Model selection
 
-Follow the [model policy](../model-policy.md) — phase: **implementation**.
-
-- Default: Claude Sonnet 5 (standard thinking). The step's `model:` field wins if present.
-- Before touching code, state the model you are running as; if it does not match the step's model, STOP and ask the user to switch.
-- If verification fails twice at the assigned tier, escalate ONE tier (Claude Opus 5) for this step only, note the escalation in PLAN.md, and drop back for the next step.
-- Never implement on Restricted-tier or unknown-cost models (Fable, GPT-6 Astra, GPT-5.6 family) without explicit user approval.
+Model selection is configured by the user or execution environment; this prompt cannot enforce or validate the active model. Follow an optional `model:` hint in `PLAN.md` only when that model is available. If model guidance cannot be followed, record the limitation rather than claiming enforcement.
 
 ---
 
@@ -29,7 +24,7 @@ Follow the [model policy](../model-policy.md) — phase: **implementation**.
 ## Resume logic
 
 - Read `PLAN.md`
-- Verify it matches the Jira story retrieved via the `jira` MCP connection
+- Verify it matches the supplied story or the story retrieved through an available issue-tracker integration
 - Find the first unchecked `[ ]` step
 - Before implementing that step:
   - read its `goal`, `files`, `tests`, `verify`, and `done_when`
@@ -53,16 +48,15 @@ If multiple consecutive steps are already satisfied:
 ### Repo context awareness
 
 - Check the step for a `repo:` field
-- If `repo: e2e` — work in the adjacent e2e repository
-- Otherwise — work in the SPA repository
-- Ensure the correct branch exists in each repo before making changes
-- The e2e branch name MUST match the SPA feature branch name
+- If `repo: e2e`, use the separately configured e2e repository; otherwise use the current application repository
+- Discover the integration branch from repository documentation or configuration; ask if it remains unclear
+- Follow each repository's documented branch and cross-repository conventions
 
 ### UI consistency rules (when step touches frontend)
 
-- Before editing UI, inspect the same feature area in at least one existing SPA and copy its layout/component pattern.
-- Reuse existing shared classes, CSS tokens, PrimeVue components, and structural conventions before introducing new ones.
-- Do not introduce a parallel visual language for equivalent screens (for example, `search-criteria` sections should follow the established filter row/group pattern).
+- Before editing UI, inspect a comparable feature area and follow its layout and component patterns.
+- Reuse existing shared styles, design tokens, component-library elements, and structural conventions before introducing new ones.
+- Keep equivalent screens consistent with the application's established visual language and interaction patterns.
 - Keep accessibility semantics aligned with existing components (labels, placeholders, button intent/type, aria attributes) unless the step explicitly requires a change.
 - If a step requires a visual deviation, document the reason in PLAN.md completion notes.
 
@@ -72,7 +66,7 @@ If multiple consecutive steps are already satisfied:
 - Do not start the next step until the current one is implemented, tested, verified, and marked complete in PLAN.md.
 - After satisfying a step's done_when, run the listed tests and verify commands, update PLAN.md to [x], and create a git commit for that step before moving on.
 - Reference the exact verification commands in your output so reviewers know what was executed.
-- For e2e steps: commit in the e2e repo, not the SPA repo.
+- For e2e steps, commit changes in the repository where those files were changed.
 
 For the current step:
 
@@ -88,15 +82,13 @@ For the current step:
 When executing a step with `repo: e2e`:
 
 1. Switch to the e2e repo working directory
-2. Ensure you are on the correct matching branch (create from latest `develop` if it doesn't exist)
+2. Ensure you are on the correct matching feature branch (create from the repository's documented integration branch if it doesn't exist; ask if unclear)
 3. Follow existing patterns:
-   - Page objects go in `tests/page-objects/`
-   - Fixtures/helpers go in `tests/<feature>/helpers/`
-   - Specs follow the `suite-NN-<description>.spec.ts` naming convention
+  - Follow established test-file, page-object, fixture, and helper conventions
 4. Use existing page objects and extend them rather than creating parallel ones
 5. Import from established fixture/helper patterns in the feature directory
-6. Tests must exercise real page interactions (navigation, clicks, form fills, assertions on visible content)
-7. Verification: run the specific spec file with `npx playwright test <spec-path> --reporter=list`
+6. Tests should exercise real user-visible interactions when appropriate
+7. Discover and run the project's documented command for the specific test file
 
 ---
 
@@ -162,8 +154,7 @@ For each run:
 
 - state whether you are resuming or starting the next incomplete step
 - state which step is being executed
-- state the model you are running as vs the step's `model:` (and any escalation)
-- state which repo the step targets (SPA or e2e)
+- state which repository the step targets (application or e2e, if separate)
 - summarize what changed
 - summarize tests added/updated
 - summarize verification results (include the exact commands run)
@@ -181,4 +172,4 @@ For each run:
 - Never jump ahead
 - Never ignore `done_when`
 - Never recreate `PLAN.md` unless it is missing or invalid
-- Never commit e2e changes in the SPA repo or vice versa
+- Commit changes in the repository where the files were changed
