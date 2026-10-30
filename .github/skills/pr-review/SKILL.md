@@ -1,3 +1,10 @@
+---
+name: pr-review
+description: Review a pull request diff for correctness, regression risk, and missing tests. Use when reviewing proposed changes before merge.
+argument-hint: "Pull request or target branch"
+disable-model-invocation: true
+---
+
 # Skill: PR Review
 
 ## Purpose

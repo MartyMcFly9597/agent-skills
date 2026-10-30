@@ -1,3 +1,9 @@
+---
+name: shared-vue-testing-context
+description: Apply shared Vue testing conventions when creating or reviewing component and integration tests.
+user-invocable: false
+---
+
 # Skill: Shared Vue Testing Context
 
 ## Purpose

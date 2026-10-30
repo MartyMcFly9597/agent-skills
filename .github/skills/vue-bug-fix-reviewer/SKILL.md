@@ -1,3 +1,10 @@
+---
+name: vue-bug-fix-reviewer
+description: Review Vue bug fixes for causal correctness, complete coverage, and regression-safe black-box tests.
+argument-hint: "BUGFIX.md or bug report"
+disable-model-invocation: true
+---
+
 # Skill: Vue Bug Fix Reviewer
 
 ## Purpose

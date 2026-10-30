@@ -1,3 +1,10 @@
+---
+name: vue-bug-fixer-regression-guard
+description: Investigate and fix Vue defects with root-cause analysis and durable black-box regression tests.
+argument-hint: "Bug report or bugs.md"
+disable-model-invocation: true
+---
+
 # Skill: Vue Bug Fixer Regression Guard
 
 ## Purpose

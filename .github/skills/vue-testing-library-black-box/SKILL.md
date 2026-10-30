@@ -1,3 +1,10 @@
+---
+name: vue-testing-library-black-box
+description: Write resilient Vue component tests with Testing Library using accessible selectors and observable behavior.
+argument-hint: "Component or behavior to test"
+disable-model-invocation: true
+---
+
 # Skill: Vue Testing Library Black-Box
 
 ## Purpose

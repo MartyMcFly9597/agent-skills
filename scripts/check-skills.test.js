@@ -119,7 +119,7 @@ test('fails when a phase skill disables explicit invocation', () => {
 
 test('fails on a private-looking host without echoing the matched text', () => {
   const simulatedHost = ['private', 'invalid', 'internal'].join('.');
-  const result = runChecker(`host: ${simulatedHost}\n`);
+  const result = runChecker(`host: ${simulatedHost}.\n`);
   const output = `${result.stdout}\n${result.stderr}`;
 
   assert.equal(result.status, 1);
@@ -188,6 +188,23 @@ test('reports review-only privacy patterns with accurate line numbers', () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /REVIEW README\.md:2 external URL or email/);
+});
+
+test('reports issue, numeric, pricing, and context patterns without failing', () => {
+  const issueKey = ['AB', '123'].join('-');
+  const longNumber = ['1234', '5678'].join('');
+  const result = runChecker([
+    `Issue: ${issueKey}`,
+    `Reference: ${longNumber}`,
+    'Estimate: 12 USD cost',
+    'Context: customer workflow',
+  ].join('\n'));
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /REVIEW README\.md:1 issue-key-shaped identifier/);
+  assert.match(result.stdout, /REVIEW README\.md:2 long numeric identifier/);
+  assert.match(result.stdout, /REVIEW README\.md:3 pricing or cost terminology/);
+  assert.match(result.stdout, /REVIEW README\.md:4 sensitive-context terminology/);
 });
 
 test('fails on an external privacy denylist match with its line number', () => {
