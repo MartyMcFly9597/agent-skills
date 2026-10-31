@@ -1,48 +1,48 @@
-# Skill: Story Verifier
+---
+name: story-verifier
+description: Independently verify a completed story against PLAN.md, its acceptance criteria, tests, and current evidence. Use as the final gate before accepting story work.
+argument-hint: "Story key or PLAN.md"
+disable-model-invocation: true
+---
+
+# Story Verifier
 
 ## Purpose
 
-Gate story completion by validating plan integrity, implementation quality, test strength, and verification evidence.
+Provide a strict, evidence-based gate review of story implementation, tests, regression risk, and plan completion.
 
 ## When to use
 
-- A planned story has been implemented and needs objective validation.
-- Completed checklist items need audit.
+- A planned story has been implemented and needs objective verification.
+- Completed checklist items need a fresh audit before acceptance.
 
 ## Required inputs
 
 - `PLAN.md`.
-- Jira story details.
-- Code and tests in repository.
-- Verification logs or rerunnable commands.
+- Story details from an available issue-tracker integration, or pasted by the user.
+- Application changes, tests, and current verification output or rerunnable commands.
+- Optional separate e2e repository when the plan includes `repo: e2e` steps.
+
+If required evidence is missing, report that gap rather than assuming success.
 
 ## Procedure
 
-1. Validate `PLAN.md` exists and matches Jira story.
-2. Confirm each completed step has clear `goal`, `files`, `tests`, `verify`, `done_when`.
-3. Audit code changes against story scope and patterns.
-4. Check unit tests for completed SPA steps and regression coverage.
-5. Check e2e tests exist for user-facing acceptance criteria.
-6. Verify e2e branch exists and matches SPA branch name.
-7. Confirm verification evidence is present and current.
-8. Flag unsupported checklist completion.
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and verification gate to `PLAN.md`.
+
+1. Match `PLAN.md` to the story details and acceptance criteria. Map each criterion to implementation and meaningful test coverage; identify partial delivery.
+2. Confirm e2e steps exist for user-facing acceptance criteria when an e2e environment is available.
+3. Check frontend consistency with comparable screens, shared styles/tokens, and accessibility semantics. For Vue tests, read and follow [vue-testing](../vue-testing/SKILL.md).
+4. For e2e steps, verify repository branch conventions, page-object/fixture reuse, visible behavior coverage, and whether the specific spec can run independently. If unavailable, state the gap and rationale.
+5. Apply the shared evidence audit and return its gate verdict and findings.
 
 ## Output contract
 
-- Group concise findings by severity:
-  - issue: must fix
-  - concern: should fix or discuss
-  - nitpick: minor
-  - suggestion: improvement
-  - verified: good
+- Use the shared gate report, identifying unmet acceptance criteria and missing or unavailable e2e coverage.
 
 ## Non-negotiable rules
 
-- Do not pass without verification evidence.
-- Do not trust checklist completion without code and test proof.
-- Do not pass user-facing stories without e2e coverage.
+- Do not pass user-facing work with missing e2e coverage unless the plan records a justified unavailable environment.
 
-## Source prompts
+## Related skills
 
-- `.codex/prompts/story/verify.md`
-- `.codex/prompts/story-agent.md`
+- Use `story-planner` to validate planning quality and `story-implementer` for step execution.

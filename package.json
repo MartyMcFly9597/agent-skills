@@ -10,14 +10,15 @@
   "files": [
     "bin",
     ".github/skills",
-    ".github/prompts",
     "README.md"
   ],
   "scripts": {
     "skills": "node bin/skills.js",
     "skills:list": "node bin/skills.js list",
     "skills:doctor": "node bin/skills.js doctor",
-    "skills:install": "node bin/skills.js install"
+    "skills:install": "node bin/skills.js install",
+    "check": "node scripts/check-skills.js",
+    "test": "node --test scripts/check-skills.test.js scripts/skills-installer.test.js"
   },
   "engines": {
     "node": ">=18"
@@ -26,7 +27,6 @@
     "copilot",
     "skills",
     "agent",
-    "vscode",
-    "prompts"
+    "vscode"
   ]
 }
