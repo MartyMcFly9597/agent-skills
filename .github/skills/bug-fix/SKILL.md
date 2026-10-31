@@ -26,30 +26,23 @@ If `BUGFIX.md` is absent or invalid, stop and request the investigation workflow
 
 ## Procedure
 
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and step execution rules to `BUGFIX.md`.
+
 1. Read `BUGFIX.md` and validate that it matches the supplied issue details. Re-read the identified code path to confirm the stated cause.
-2. Find the first unchecked `[ ]` step. Execute only that step in this run.
-3. Check whether the step's `done_when` conditions are already satisfied. If all are clearly met, run its listed verification before marking it complete; otherwise make the smallest required change.
-4. For a code fix, write a focused regression test that reproduces the reported behavior and verify that it fails for the expected reason before changing implementation code.
-5. Apply the smallest safe change that addresses the confirmed root cause. Do not refactor unrelated code.
-6. Run the exact step test and verification commands from `BUGFIX.md`, plus relevant existing regression tests. Discover commands from repository manifests or docs if the plan omitted them; record any adjustment.
-7. Re-read `done_when`. Mark the step `[x]` only when implementation, regression coverage, and all required verification are complete. Record exact commands and results.
-8. Prepare the completed step as a commit-ready increment. Commit only when permitted by the consumer repository's contribution workflow; keep changes in the correct repository.
+2. Choose the lowest suitable test boundary: unit for isolated logic, component/integration for UI behavior, or e2e when the full user flow is essential. For Vue changes, read and follow [vue-testing](../vue-testing/SKILL.md).
+3. For a code fix, write a focused regression test that reproduces the reported behavior and verify that it fails for the expected reason before changing implementation code.
+	On resume when implementation already exists, preserve current work. Use recorded observed red/green evidence or, with permission, replay the test against unfixed code in an isolated checkout and rerun against the fix. Label a retrospective replay honestly; it proves regression sensitivity, not original test-first chronology. Missing evidence blocks completion, not a reason to undo existing work.
+4. Address the confirmed cause, not symptoms. Cover realistic related paths when the selected step changes a shared dependency; do not bundle independent defects into the step.
+5. Complete the selected step under the shared verification, checkpoint, and reporting rules, including relevant existing regression tests.
 
 ## Output contract
 
-- State which step and repository were handled.
-- Summarize the reproducing test and minimal fix.
-- List exact verification commands and results.
-- State whether the step was marked complete and whether a commit was created.
-- Report blockers or residual risk without claiming unverified success.
+- Use the shared step report, adding the reproducing failure, causal fix, and regression coverage.
 
 ## Non-negotiable rules
 
-- One incomplete step per run; do not skip steps.
 - Test first: demonstrate the regression test failing before the fix.
-- Never mark completion without fresh verification and satisfied `done_when` conditions.
-- Avoid unrelated refactors and do not claim a tool/model restriction that the Copilot skill cannot enforce.
-- Keep organization-specific endpoints, identifiers, customer data, and business-process details out of reusable examples and shared output.
+- A fix must address the confirmed cause rather than masking the symptom.
 
 ## Related skills
 

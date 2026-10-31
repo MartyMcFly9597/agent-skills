@@ -25,32 +25,23 @@ Execute a valid `PLAN.md` one step at a time, with tests and verification before
 
 ## Procedure
 
-1. Read and validate `PLAN.md` against the supplied story details. Do not recreate it unless it is missing or clearly invalid.
-2. If the plan recommends multi-context execution, perform only one step in this run and rely on the plan for context.
-3. Find the first unchecked `[ ]` step. Read its `goal`, `files`, `tests`, `verify`, and `done_when` fields and inspect the current code to determine whether it is already satisfied.
-4. If `repo: e2e` is specified, work in the separate e2e repository; otherwise work in the current application repository. Confirm the correct feature branch in each repo. If the base branch is unknown, inspect repository docs or ask the user.
-5. For a frontend change, inspect a comparable screen or component in the same area. Reuse established layout, shared styles/tokens, component patterns, and accessibility semantics; document necessary visual deviations in `PLAN.md`.
-6. Follow repository documentation conventions for public APIs. Add comments only when they clarify non-obvious intent or constraints.
-7. Make the smallest safe change for this step. Add or update tests for its new behavior and relevant regression risks. For bug-fix work, write and observe a reproducing test fail before the implementation change.
-8. Run every listed test and verification command. Discover actual commands from the consumer repository if the plan is incomplete; do not invent commands. If verification fails, diagnose and repair this step, then rerun the same checks.
-9. Re-read `done_when`. Mark `[x]` only after implementation, tests, and all required verification are complete. Record exact commands and results.
-10. Commit a completed step only when the consumer repository's contribution workflow permits it. Commit in the repository where the files changed.
-11. For e2e work, follow the repository's page-object, fixture, helper, and spec conventions. Exercise real user-visible interactions when appropriate and discover the repository's actual command for the specific spec.
-12. Stop after the current incomplete step. Report the step, repo, changes, tests, exact verification results, completion status, and commit status.
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and step execution rules to `PLAN.md`.
+
+1. Match the plan to the supplied story details. If missing or invalid, return to planning rather than improvising an implementation plan.
+2. If `repo: e2e` is specified, use the separate e2e repository; otherwise use the application repository. Confirm branch conventions in each repository.
+3. For frontend work, inspect a comparable screen or component. Reuse layout, shared styles/tokens, component patterns, and accessibility semantics; record necessary deviations in `PLAN.md`.
+4. Follow repository documentation conventions for public APIs. Add comments only for non-obvious intent or constraints.
+5. Add tests for the step's acceptance criteria and relevant regression risks. For bug-fix work, observe a reproducing test fail before implementation. For Vue component tests, read and follow [vue-testing](../vue-testing/SKILL.md).
+6. For e2e work, reuse the repository's page objects, fixtures, helpers, and spec conventions. Exercise actual visible interactions and discover the command for the specific spec.
+7. Complete the selected step under the shared verification, checkpoint, and reporting rules.
 
 ## Output contract
 
-- One step per invocation.
-- Report only observed verification results; state failures or unavailable prerequisites clearly.
-- Do not claim a model or tool restriction was enforced by this skill. An optional `model:` field in `PLAN.md` is informational; model availability is controlled outside the skill.
+- Use the shared step report, including acceptance-criteria coverage and any e2e gap.
 
 ## Non-negotiable rules
 
-- Never skip a plan step or tests.
-- Never mark `[x]` before every `done_when` condition is verifiably met.
-- Never proceed to the next step before the current step is tested and verified.
-- Avoid unrelated refactors.
-- Keep examples and shared output free of organization identifiers, private endpoints, customer data, and business-specific operational details.
+- Implementation must remain aligned with the story's acceptance criteria and selected plan step.
 
 ## Related skills
 

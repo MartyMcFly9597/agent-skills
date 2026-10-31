@@ -7,6 +7,42 @@ const test = require('node:test');
 
 const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 
+test('installed workflows retain six entry points and load shared supporting skills', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
+  try {
+    const installed = runInstaller([target]);
+    assert.equal(installed.status, 0, installed.stderr);
+    const skillsRoot = path.join(target, '.github', 'skills');
+    const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
+    for (const phase of phases) {
+      const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
+      assert.match(content, /disable-model-invocation: true/);
+      assert.match(content, /Read and follow.*\[workflow-execution\]\(\.\.\/workflow-execution\/SKILL\.md\)/);
+    }
+    for (const supporting of ['workflow-execution', 'vue-testing']) {
+      const content = fs.readFileSync(path.join(skillsRoot, supporting, 'SKILL.md'), 'utf8');
+      assert.match(content, new RegExp(`name: ${supporting}`));
+      assert.match(content, /user-invocable: false/);
+      assert.doesNotMatch(content, /disable-model-invocation: true/);
+    }
+    for (const retired of ['shared-vue-testing-context', 'vue-testing-library-black-box', 'vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
+      assert.equal(fs.existsSync(path.join(skillsRoot, retired)), false, retired);
+    }
+    for (const phase of phases) {
+      const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
+      assert.match(content, /\[vue-testing\]\(\.\.\/vue-testing\/SKILL\.md\)/);
+    }
+    const bugFix = fs.readFileSync(path.join(skillsRoot, 'bug-fix', 'SKILL.md'), 'utf8');
+    assert.match(bugFix, /fails for the expected reason before changing implementation code/);
+    const storyReview = fs.readFileSync(path.join(skillsRoot, 'story-verifier', 'SKILL.md'), 'utf8');
+    assert.match(storyReview, /acceptance criteria/);
+    const bugReview = fs.readFileSync(path.join(skillsRoot, 'bug-verify', 'SKILL.md'), 'utf8');
+    assert.match(bugReview, /root cause/);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
 function runInstaller(args) {
   return spawnSync(process.execPath, [INSTALLER, 'install', ...args], { encoding: 'utf8' });
 }

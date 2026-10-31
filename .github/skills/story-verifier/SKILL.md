@@ -27,29 +27,21 @@ If required evidence is missing, report that gap rather than assuming success.
 
 ## Procedure
 
-1. Validate that `PLAN.md` is present and matches the supplied story details.
-2. Check that steps are small and have concrete `goal`, `files`, `tests`, `verify`, and `done_when` fields. Confirm e2e steps exist for user-facing acceptance criteria when an e2e environment is available.
-3. For each completed `[x]` step, compare the code, tests, verification evidence, and any claimed commit with the step's `done_when`.
-4. Review the diff for scope alignment, unintended behavior changes, reuse of established patterns, and unnecessary refactoring.
-5. Check unit/component test quality, meaningful regression cases, and test-layer choice.
-6. For e2e steps, verify repository branch conventions, reuse of page objects/fixtures, coverage of visible user behavior, and whether the specific spec can run independently. If e2e is unavailable, state the gap and rationale.
-7. Check unit, component, end-to-end, lint, style-lint, and build evidence as relevant to the change. Confirm commands are current and actually passed; rerun when feasible and distinguish observed results from claims.
-8. Use a reviewer distinct from the author when the environment makes one available. A different model family can add independence when available; the environment controls model choice.
-9. Return concise findings under text headings: `issue` (must fix), `concern` (should fix or discuss), `nitpick`, `suggestion`, and `verified`.
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and verification gate to `PLAN.md`.
+
+1. Match `PLAN.md` to the story details and acceptance criteria. Map each criterion to implementation and meaningful test coverage; identify partial delivery.
+2. Confirm e2e steps exist for user-facing acceptance criteria when an e2e environment is available.
+3. Check frontend consistency with comparable screens, shared styles/tokens, and accessibility semantics. For Vue tests, read and follow [vue-testing](../vue-testing/SKILL.md).
+4. For e2e steps, verify repository branch conventions, page-object/fixture reuse, visible behavior coverage, and whether the specific spec can run independently. If unavailable, state the gap and rationale.
+5. Apply the shared evidence audit and return its gate verdict and findings.
 
 ## Output contract
 
-- State whether the plan passes, fails, or cannot be verified with available evidence.
-- Reference concrete files and evidence; do not trust `[x]` without proof.
-- Call out missing tests, stale/missing verification, or unresolved regression risks.
+- Use the shared gate report, identifying unmet acceptance criteria and missing or unavailable e2e coverage.
 
 ## Non-negotiable rules
 
-- No pass without current verification evidence.
-- No pass when the plan is out of sync or a completed step fails its `done_when`.
 - Do not pass user-facing work with missing e2e coverage unless the plan records a justified unavailable environment.
-- Model and tool availability are controlled by the execution environment; this skill does not enforce them.
-- Keep review examples and shared output free of organization identifiers, private endpoints, customer data, and business-specific operational details.
 
 ## Related skills
 

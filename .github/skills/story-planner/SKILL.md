@@ -27,11 +27,14 @@ If story details or repository context are missing, ask for them. Never fabricat
 
 ## Procedure
 
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and planning contract. Do not execute its implementation phase while planning.
+
 1. Understand user-visible behavior, acceptance criteria, edge cases, constraints, and ambiguities. Create a stable story identifier from the supplied story content without copying confidential material into this reusable skill.
 2. Inspect relevant application code, tests, mocks, fixtures, types, configuration, and repository scripts. Identify behavior to reuse, affected modules, coupling, fragile areas, regression risks, and missing coverage.
+  For planned Vue component coverage, read and follow [vue-testing](../vue-testing/SKILL.md) before selecting tests and commands. Record missing harness prerequisites rather than promising unavailable coverage.
 3. Highlight in-scope patterns that could materially affect the planned change. Recommend improvements when they reduce risk, but avoid unrelated refactors.
 4. If a separate e2e repository exists, inspect relevant specs, page objects, fixtures, and naming patterns. Otherwise record that no separate e2e repository is configured.
-5. If `PLAN.md` exists, validate it against the current story. Preserve valid completed `[x]` steps and valid unchecked `[ ]` steps. Update only where new findings require it. If it is invalid for this story, replace it and explain why.
+5. Apply the shared planning contract to any existing `PLAN.md`, matching it to the supplied story and current code.
 6. Create or update `PLAN.md` using this structure:
 
 ```markdown
@@ -56,6 +59,12 @@ If story details or repository context are missing, ask for them. Never fabricat
 ## Assumptions / Ambiguities
 
 - ...
+
+## Application Context
+
+- repository and stack:
+- applicable app-family / technology skills (paths, or none):
+- repository-specific constraints:
 
 ## Impacted Areas
 
@@ -96,9 +105,9 @@ If story details or repository context are missing, ask for them. Never fabricat
 
 A step may include an optional `model:` hint only when the user has specified an available model. The hint is informational; this skill cannot enforce it. Prefer the least-complex available model that can perform the task reliably. Escalate only after a concrete reasoning or verification need appears, and return to the ordinary choice for later steps.
 
-7. Keep steps small, testable, independently executable where practical, and commit-ready. Every step has a goal, likely files, tests, executable verification commands, and objective `done_when` criteria. Order work to verify behavior early and reduce regression risk.
-8. For user-facing behavior changes, plan a dedicated e2e step when an e2e environment is available. Specify reusable page objects and fixtures, place it after the corresponding implementation step, and follow each repository's documented branch convention. If e2e cannot be run or no separate repository exists, state the gap and reason.
-9. Discover test and verification commands from the consumer repository's manifests or docs. Write commands that can be run as-is; do not copy source-project commands unless confirmed present in the consumer repository.
+7. Use the shared step fields. Order work to verify behavior early and reduce regression risk.
+8. For user-facing behavior changes, plan a dedicated e2e step when an e2e environment is available, whether in the application repository or a separate one. Specify reusable page objects and fixtures, place it after the corresponding implementation step, and follow repository branch conventions. Use `repo: e2e` only for a separate repository; identify application-local e2e files as application work. If e2e cannot be run, state the gap and reason. Absence of a separate repository alone is not a coverage gap.
+9. Record repository-specific commands and prerequisites under the shared planning contract.
 10. Include complexity (`small | medium | large`), rationale, and suggested execution (`single-context` or `multi-context`). Large work should be grouped into independently executable phases.
 11. Save `PLAN.md` and summarize story understanding, risks, impacted areas, plan, e2e coverage, and whether work was resumed or started fresh.
 
@@ -110,10 +119,7 @@ A step may include an optional `model:` hint only when the user has specified an
 ## Non-negotiable rules
 
 - Planning only; no implementation code changes.
-- Preserve valid progress when resuming.
-- No large or vague steps; every step needs explicit tests, verification, and `done_when`.
 - Consider e2e coverage for user-facing behavior and document when it is unavailable.
-- Keep examples generic and never copy organization-specific identifiers, URLs, business operations, or confidential story details into reusable skill content.
 
 ## Related skills
 

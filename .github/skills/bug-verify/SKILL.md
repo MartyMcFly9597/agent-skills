@@ -26,27 +26,22 @@ If critical context or evidence is unavailable, report the gap; do not infer a p
 
 ## Procedure
 
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and verification gate to `BUGFIX.md`.
+
 1. Validate that `BUGFIX.md` describes the same defect and has a specific, code-supported root cause.
-2. For every completed step, check its `goal`, changed files, tests, verification, and `done_when` against the actual diff and results.
-3. Confirm a regression test exercises the original failure, plausibly fails before the fix, and passes after. Review relevant edge cases and existing coverage.
-4. Check that the implementation addresses the root cause rather than masking symptoms and stays within the approved scope.
-5. Confirm current evidence for affected tests and applicable lint/build checks. Rerun commands when feasible; distinguish observed results from claims.
-6. Review residual regression risks and end-to-end coverage needed for user-visible behavior. If the required e2e environment is unavailable, state that explicitly.
-7. Use a reviewer distinct from the author when available. A different model family can add independence when available; the environment controls model choice.
-8. Return concise findings under `issue`, `concern`, `nitpick`, `suggestion`, and `verified`. State whether the fix passes, fails, or cannot be verified.
+2. Check evidence that a regression test exercises the original failure, failed for the expected reason before the fix, and passes after it. An assumed or plausible pre-fix failure is not observed evidence.
+3. Map each reported expectation to the changed path and tests. Reject partial remediation, symptom masking, and mocks that bypass the failure. Review related callers and shared state/data dependencies for causal completeness.
+4. For Vue changes, read and follow [vue-testing](../vue-testing/SKILL.md), including its test-durability review gate.
+5. Review residual regression risks and e2e coverage needed for visible behavior; explicitly report an unavailable environment.
+6. Apply the shared evidence audit and return its gate verdict and findings.
 
 ## Output contract
 
-- Findings refer to specific files and observable evidence.
-- State whether the fix passes the gate, fails, or cannot be verified with the available evidence.
-- Identify the missing test or verification command when blocked.
+- Use the shared gate report, including causal completeness, original-failure evidence, and residual risks.
 
 ## Non-negotiable rules
 
 - Do not pass without a confirmed root cause, a meaningful reproducing test, regression-risk review, and current verification evidence.
-- Do not trust `[x]` without checking the code, tests, and `done_when` conditions.
-- Do not claim a separate model vendor or tool set was enforced by this skill.
-- Keep organization-specific endpoints, identifiers, customer data, and business-process details out of reusable examples and shared output.
 
 ## Related skills
 

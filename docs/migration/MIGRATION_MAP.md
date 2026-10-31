@@ -29,10 +29,9 @@ Official references: VS Code documentation, “Convert prompt files to skills”
 
 | Skill | Historical prompt source | Guidance consolidated |
 | --- | --- | --- |
-| `shared-vue-testing-context` | `.github/prompts/vue/vue-testing-shared-context.md` | Vue test stack context, selector order, observable behavior, minimal diffs |
-| `vue-testing-library-black-box` | `.github/prompts/vue/vue-testing-library-black-box.md` | `render`, accessible selector priority, observable scenarios, anti-patterns and quality bar |
-| `vue-bug-fixer-regression-guard` | `.github/prompts/vue/vue-bug-fixer-regression-guard.md` | Shared-root-cause analysis and test-level selection |
-| `vue-bug-fix-reviewer` | `.github/prompts/vue/vue-bug-fix-reviewer.md` | Causal completeness, partial fixes, black-box coverage, severity findings |
+| `vue-testing` | `.github/prompts/vue/vue-testing-shared-context.md`, `.github/prompts/vue/vue-testing-library-black-box.md` | Vue harness context, accessible queries, observable scenarios, asynchronous interactions, anti-patterns and review gate |
+| Bug workflow skills and `vue-testing` | `.github/prompts/vue/vue-bug-fixer-regression-guard.md`, `.github/prompts/vue/vue-bug-fix-reviewer.md` | Shared-root-cause analysis, test-level selection, causal completeness, partial fixes, and durable regression coverage |
+| `workflow-execution` | Story and bug workflow sources listed above | Common planning/resume contract, one-step execution, verification evidence, checkpointing, and gate reporting |
 | Story workflow skills | `.github/prompts/story-agent.md` | Shared story inspection, regression-risk, scope and documentation guidance distributed by phase |
 | Story and review skills | `.github/prompts/model-policy.md` | Informational model guidance placed where planning or independent review makes it relevant; no model selector skill was created because skills cannot switch the configured model |
 
