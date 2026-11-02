@@ -8,7 +8,7 @@ function printHelp() {
 
 Usage:
   skills list [--source <path>]
-  skills install [target] [--force] [--dry-run] [--source <path>]
+  skills install [target] [--force] [--dry-run] [--with-prompts] [--source <path>]
   skills doctor [--source <path>]
 
 Examples:
@@ -16,6 +16,7 @@ Examples:
   skills install .
   skills install ../my-workspace
   skills install . --force
+  skills install . --with-prompts
   skills doctor
 `);
 }

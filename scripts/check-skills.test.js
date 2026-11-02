@@ -85,6 +85,31 @@ test('ignores Markdown links inside inline code spans', () => {
   assert.match(result.stdout, /0 relative links checked/);
 });
 
+test('does not treat escaped backticks as inline code delimiters', () => {
+  const escapedTick = '\\`';
+  const content = `Literal ${escapedTick} before [broken](missing.md) and an unmatched ${'`'}\n`;
+  const result = runChecker(content);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+});
+
+test('validates multiline inline Markdown destinations', () => {
+  const result = runChecker('[guide](\n  docs/missing.md\n)\n');
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+});
+
+test('counts existing multiline inline Markdown destinations', () => {
+  const result = runChecker('[guide](\n  docs/guide.md\n)\n', {
+    'docs/guide.md': '# Guide\n',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /1 relative links checked/);
+});
+
 test('rejects malformed YAML frontmatter', () => {
   const result = runChecker('# Public package\n', {
     '.github/skills/bug-fix/SKILL.md': [

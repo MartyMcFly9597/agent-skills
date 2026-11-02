@@ -200,6 +200,32 @@ function extractMarkdownLinks(content) {
   return links;
 }
 
+function parseFenceOpening(line) {
+  let cursor = 0;
+  while (line[cursor] === ' ' && cursor < 4) cursor += 1;
+  if (cursor > 3 || (line[cursor] !== '`' && line[cursor] !== '~')) return null;
+
+  const character = line[cursor];
+  const delimiterStart = cursor;
+  while (line[cursor] === character) cursor += 1;
+  const length = cursor - delimiterStart;
+  if (length < 3) return null;
+  if (character === '`' && line.slice(cursor).includes('`')) return null;
+  return { character, length };
+}
+
+function isFenceClosing(line, fence) {
+  let cursor = 0;
+  while (line[cursor] === ' ' && cursor < 4) cursor += 1;
+  if (cursor > 3) return false;
+
+  const delimiterStart = cursor;
+  while (line[cursor] === fence.character) cursor += 1;
+  if (cursor - delimiterStart < fence.length) return false;
+  while (line[cursor] === ' ' || line[cursor] === '\t') cursor += 1;
+  return cursor === line.length;
+}
+
 function maskMarkdownCode(content) {
   const characters = content.split('');
   let fence = null;
@@ -213,15 +239,14 @@ function maskMarkdownCode(content) {
     const line = content.slice(lineStart, textEnd);
 
     if (fence) {
-      const closing = line.match(/^ {0,3}(`+|~+)[ \t]*$/);
       for (let index = lineStart; index < lineEnd; index += 1) {
         if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
       }
-      if (closing && closing[1][0] === fence.character && closing[1].length >= fence.length) fence = null;
+      if (isFenceClosing(line, fence)) fence = null;
     } else {
-      const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
-      if (opening && !(opening[1][0] === '`' && opening[2].includes('`'))) {
-        fence = { character: opening[1][0], length: opening[1].length };
+      const opening = parseFenceOpening(line);
+      if (opening) {
+        fence = opening;
         for (let index = lineStart; index < lineEnd; index += 1) {
           if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
         }
@@ -235,6 +260,15 @@ function maskMarkdownCode(content) {
   let cursor = 0;
   while (cursor < characters.length) {
     if (characters[cursor] !== '`') {
+      cursor += 1;
+      continue;
+    }
+
+    let precedingBackslashes = 0;
+    for (let index = cursor - 1; index >= 0 && characters[index] === '\\'; index -= 1) {
+      precedingBackslashes += 1;
+    }
+    if (precedingBackslashes % 2 === 1) {
       cursor += 1;
       continue;
     }
@@ -288,23 +322,47 @@ function firstWhitespacePart(value) {
   return value;
 }
 
-function findInlineTargetEnd(content, start) {
-  let lineEnd = content.indexOf('\n', start);
-  if (lineEnd < 0) lineEnd = content.length;
+function startsInlineLink(content, start) {
+  const labelEnd = content.indexOf(']', start + 1);
+  if (labelEnd < 0 || content[labelEnd + 1] !== '(') return false;
+  const lineFeed = content.indexOf('\n', start);
   const carriageReturn = content.indexOf('\r', start);
-  if (carriageReturn >= 0 && carriageReturn < lineEnd) lineEnd = carriageReturn;
+  const lineEnd = Math.min(
+    lineFeed < 0 ? content.length : lineFeed,
+    carriageReturn < 0 ? content.length : carriageReturn,
+  );
+  return labelEnd < lineEnd;
+}
+
+function findInlineTargetEnd(content, start) {
   if (content[start] === '<') {
-    const angleEnd = content.indexOf('>', start + 1);
-    if (angleEnd < 0 || angleEnd >= lineEnd) return -1;
-    const targetEnd = content.indexOf(')', angleEnd + 1);
-    return targetEnd < 0 || targetEnd >= lineEnd ? -1 : targetEnd;
+    for (let index = start + 1; index < content.length; index += 1) {
+      if (content[index] === '\\') {
+        index += 1;
+        continue;
+      }
+      if (content[index] === ']' && startsInlineLink(content, index)) return -1;
+      if (content[index] === '>') {
+        for (let targetEnd = index + 1; targetEnd < content.length; targetEnd += 1) {
+          if (content[targetEnd] === '\\') {
+            targetEnd += 1;
+            continue;
+          }
+          if (content[targetEnd] === ']' && startsInlineLink(content, targetEnd)) return -1;
+          if (content[targetEnd] === ')') return targetEnd;
+        }
+        return -1;
+      }
+    }
+    return -1;
   }
   let nestedParens = 0;
-  for (let index = start; index < lineEnd; index += 1) {
+  for (let index = start; index < content.length; index += 1) {
     if (content[index] === '\\') {
       index += 1;
       continue;
     }
+    if (content[index] === '[' && startsInlineLink(content, index)) return -1;
     if (content[index] === '(') nestedParens += 1;
     if (content[index] !== ')') continue;
     if (nestedParens === 0) return index;

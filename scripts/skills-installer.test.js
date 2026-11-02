@@ -7,6 +7,13 @@ const test = require('node:test');
 
 const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 
+test('CLI help documents optional prompt installation', () => {
+  const result = spawnSync(process.execPath, [INSTALLER, '--help'], { encoding: 'utf8' });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /--with-prompts/);
+});
+
 test('installed workflows retain distinct Jira and Vue entry points', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
   try {
