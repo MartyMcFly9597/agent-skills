@@ -194,9 +194,80 @@ function markdownFiles(files) {
 
 function extractMarkdownLinks(content) {
   const links = [];
-  extractInlineMarkdownLinks(content, links);
-  extractMarkdownDefinitions(content, links);
+  const visibleContent = maskMarkdownCode(content);
+  extractInlineMarkdownLinks(visibleContent, links);
+  extractMarkdownDefinitions(visibleContent, links);
   return links;
+}
+
+function maskMarkdownCode(content) {
+  const characters = content.split('');
+  let fence = null;
+  let lineStart = 0;
+
+  while (lineStart < content.length) {
+    let lineEnd = content.indexOf('\n', lineStart);
+    if (lineEnd < 0) lineEnd = content.length;
+    let textEnd = lineEnd;
+    if (textEnd > lineStart && content[textEnd - 1] === '\r') textEnd -= 1;
+    const line = content.slice(lineStart, textEnd);
+
+    if (fence) {
+      const closing = line.match(/^ {0,3}(`+|~+)[ \t]*$/);
+      for (let index = lineStart; index < lineEnd; index += 1) {
+        if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
+      }
+      if (closing && closing[1][0] === fence.character && closing[1].length >= fence.length) fence = null;
+    } else {
+      const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+      if (opening && !(opening[1][0] === '`' && opening[2].includes('`'))) {
+        fence = { character: opening[1][0], length: opening[1].length };
+        for (let index = lineStart; index < lineEnd; index += 1) {
+          if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
+        }
+      }
+    }
+
+    if (lineEnd === content.length) break;
+    lineStart = lineEnd + 1;
+  }
+
+  let cursor = 0;
+  while (cursor < characters.length) {
+    if (characters[cursor] !== '`') {
+      cursor += 1;
+      continue;
+    }
+
+    let runEnd = cursor + 1;
+    while (characters[runEnd] === '`') runEnd += 1;
+    const runLength = runEnd - cursor;
+    let search = runEnd;
+    let closingStart = -1;
+
+    while (search < characters.length) {
+      const nextTick = characters.indexOf('`', search);
+      if (nextTick < 0) break;
+      let nextRunEnd = nextTick + 1;
+      while (characters[nextRunEnd] === '`') nextRunEnd += 1;
+      if (nextRunEnd - nextTick === runLength) {
+        closingStart = nextTick;
+        break;
+      }
+      search = nextRunEnd;
+    }
+
+    if (closingStart < 0) {
+      cursor = runEnd;
+      continue;
+    }
+    for (let index = cursor; index < closingStart + runLength; index += 1) {
+      if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
+    }
+    cursor = closingStart + runLength;
+  }
+
+  return characters.join('');
 }
 
 function normalizeInlineTarget(rawTarget) {

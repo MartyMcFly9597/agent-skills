@@ -62,6 +62,20 @@ test('validates reference-style relative Markdown targets', () => {
   assert.match(result.stderr, /relative Markdown link target is missing/);
 });
 
+test('ignores Markdown links inside fenced code blocks', () => {
+  const result = runChecker('```md\n[example](missing.md)\n```\n');
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /0 relative links checked/);
+});
+
+test('ignores Markdown links inside inline code spans', () => {
+  const result = runChecker('Example: `[example](missing.md)`\n');
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /0 relative links checked/);
+});
+
 test('rejects malformed YAML frontmatter', () => {
   const result = runChecker('# Public package\n', {
     '.github/skills/bug-fix/SKILL.md': [
