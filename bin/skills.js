@@ -89,7 +89,10 @@ function listSkills(sourceRoot) {
   }
 
   const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
-  const skillNames = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+  const skillNames = entries
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(skillsDir, entry.name, 'SKILL.md')))
+    .map((entry) => entry.name)
+    .sort();
 
   if (skillNames.length === 0) {
     console.log("No skills found.");

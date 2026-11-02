@@ -143,3 +143,22 @@ test('installer preserves existing files unless force is specified', () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('skill inventory excludes directories without a SKILL.md file', () => {
+  const source = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-list-test-'));
+  try {
+    const skillsRoot = path.join(source, '.github', 'skills');
+    fs.mkdirSync(path.join(skillsRoot, 'real-skill'), { recursive: true });
+    fs.mkdirSync(path.join(skillsRoot, 'empty-retired-skill'), { recursive: true });
+    fs.writeFileSync(path.join(skillsRoot, 'real-skill', 'SKILL.md'), '# Skill\n');
+
+    const result = spawnSync(process.execPath, [INSTALLER, 'list', '--source', source], { encoding: 'utf8' });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Found 1 skill\(s\):/);
+    assert.match(result.stdout, /- real-skill/);
+    assert.doesNotMatch(result.stdout, /empty-retired-skill/);
+  } finally {
+    fs.rmSync(source, { recursive: true, force: true });
+  }
+});
