@@ -30,7 +30,8 @@ Official references: VS Code documentation, “Convert prompt files to skills”
 | Skill | Historical prompt source | Guidance consolidated |
 | --- | --- | --- |
 | `vue-testing` | `.github/prompts/vue/vue-testing-shared-context.md`, `.github/prompts/vue/vue-testing-library-black-box.md` | Vue harness context, accessible queries, observable scenarios, asynchronous interactions, anti-patterns and review gate |
-| Bug workflow skills and `vue-testing` | `.github/prompts/vue/vue-bug-fixer-regression-guard.md`, `.github/prompts/vue/vue-bug-fix-reviewer.md` | Shared-root-cause analysis, test-level selection, causal completeness, partial fixes, and durable regression coverage |
+| `vue-bug-fixer-regression-guard` | `.github/prompts/vue/vue-bug-fixer-regression-guard.md` | Vue-specific root-cause fixing and durable black-box regression coverage; distinct from Jira `BUGFIX.md` phases |
+| `vue-bug-fix-reviewer` | `.github/prompts/vue/vue-bug-fix-reviewer.md` | Independent review of Vue fix completeness, causal coverage, and regression-test quality |
 | `workflow-execution` | Story and bug workflow sources listed above | Common planning/resume contract, one-step execution, verification evidence, checkpointing, and gate reporting |
 | Story workflow skills | `.github/prompts/story-agent.md` | Shared story inspection, regression-risk, scope and documentation guidance distributed by phase |
 | Story and review skills | `.github/prompts/model-policy.md` | Informational model guidance placed where planning or independent review makes it relevant; no model selector skill was created because skills cannot switch the configured model |

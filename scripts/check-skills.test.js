@@ -62,6 +62,55 @@ test('validates reference-style relative Markdown targets', () => {
   assert.match(result.stderr, /relative Markdown link target is missing/);
 });
 
+test('rejects malformed YAML frontmatter', () => {
+  const result = runChecker('# Public package\n', {
+    '.github/skills/bug-fix/SKILL.md': [
+      '---',
+      'name: bug-fix',
+      'description: [unterminated',
+      'disable-model-invocation: true',
+      '---',
+      '',
+    ].join('\n'),
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /missing or invalid YAML frontmatter/);
+});
+
+test('rejects duplicate YAML frontmatter keys', () => {
+  const result = runChecker('# Public package\n', {
+    '.github/skills/bug-fix/SKILL.md': [
+      '---',
+      'name: bug-fix',
+      'description: First description',
+      'description: Second description',
+      'disable-model-invocation: true',
+      '---',
+      '',
+    ].join('\n'),
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /missing or invalid YAML frontmatter/);
+});
+
+test('rejects non-string required metadata values', () => {
+  const result = runChecker('# Public package\n', {
+    '.github/skills/bug-fix/SKILL.md': [
+      '---',
+      'name: bug-fix',
+      'description: 123',
+      'disable-model-invocation: true',
+      '---',
+      '',
+    ].join('\n'),
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /description is missing or exceeds 1024 characters/);
+});
+
 test('counts existing reference-style relative Markdown targets', () => {
   const result = runChecker('[guide][docs]\n\n[docs]: docs/guide.md\n', {
     'docs/guide.md': '# Guide\n',
@@ -78,6 +127,24 @@ test('limits shipped Markdown link checks to package allowlist files', () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /0 relative links checked/);
+});
+
+test('rejects shipped Markdown links to files excluded from the package', () => {
+  const result = runChecker('[guide](docs/guide.md)\n', {
+    'docs/guide.md': '# Guide\n',
+  }, ['--shipped', '--package-root', '__ROOT__'], ['README.md']);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is not included in shipped package/);
+});
+
+test('accepts links to directories containing shipped files', () => {
+  const result = runChecker('[guides](docs)\n', {
+    'docs/index.md': '# Guide index\n',
+  }, ['--shipped', '--package-root', '__ROOT__'], ['README.md', 'docs']);
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /1 relative links checked/);
 });
 
 test('expands package allowlist globs for shipped Markdown checks', () => {
@@ -223,4 +290,23 @@ test('fails on an external privacy denylist match with its line number', () => {
   } finally {
     fs.rmSync(denylistPath, { force: true });
   }
+});
+
+test('fails when the configured privacy denylist does not exist', () => {
+  const missingPath = path.join(os.tmpdir(), `missing-skills-denylist-${process.pid}`);
+  const result = runChecker('# Heading\n', {}, [], undefined, true, {
+    ...process.env,
+    PRIVACY_DENYLIST: missingPath,
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /configured privacy deny-list file does not exist/);
+});
+
+test('reports lowercase and mixed-case issue keys in the privacy review', () => {
+  const result = runChecker('Issue: ab-123\nIssue: Ab-456\n');
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /REVIEW README\.md:1 issue-key-shaped identifier/);
+  assert.match(result.stdout, /REVIEW README\.md:2 issue-key-shaped identifier/);
 });

@@ -24,10 +24,12 @@ These skills are explicitly invoked. They describe workflow behavior but do not 
 | `bug-fix` | Execute one test-first bug-fix step at a time |
 | `bug-verify` | Independently verify root cause, regression tests, and evidence |
 | `pr-review` | Review a pull request diff for correctness and regression risk |
+| `vue-bug-fixer-regression-guard` | Fix Vue defects by root cause with durable black-box regression tests |
+| `vue-bug-fix-reviewer` | Independently review Vue fixes for causal completeness and regression safety |
 | `workflow-execution` | Supporting skill for shared planning, execution, and verification gates |
 | `vue-testing` | Supporting skill for Vue test authoring and regression-test review |
 
-Supporting skills have `user-invocable: false`: they do not add slash commands. The phase workflows explicitly load the shared workflow rules and load Vue guidance only for applicable changes.
+The Vue bug skills remain separate from the Jira `BUGFIX.md` phases. Supporting skills have `user-invocable: false`: they do not add slash commands. The phase workflows explicitly load the shared workflow rules and load Vue guidance only for applicable changes.
 
 ## Multiple Application Families
 
@@ -57,10 +59,8 @@ The installer preserves destination-only files, including with `--force`; it doe
 
 - `shared-vue-testing-context`
 - `vue-testing-library-black-box`
-- `vue-bug-fixer-regression-guard`
-- `vue-bug-fix-reviewer`
 
-Their reusable testing guidance is now in `vue-testing`; use the regular bug phases for investigation, fixes, and review. Run installation with `--dry-run` first and use `--force` only when overwriting existing skill files is intended. Confirm that the old slash commands no longer appear in a fresh Copilot session.
+Their reusable testing guidance is now in `vue-testing`; the distinct Vue bug-fixer and bug-review skills remain available. Run installation with `--dry-run` first and use `--force` only when overwriting existing skill files is intended.
 
 ## Local CLI
 

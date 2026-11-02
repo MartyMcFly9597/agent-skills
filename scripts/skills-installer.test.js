@@ -7,7 +7,7 @@ const test = require('node:test');
 
 const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 
-test('installed workflows retain six entry points and load shared supporting skills', () => {
+test('installed workflows retain distinct Jira and Vue entry points', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
   try {
     const installed = runInstaller([target]);
@@ -19,13 +19,19 @@ test('installed workflows retain six entry points and load shared supporting ski
       assert.match(content, /disable-model-invocation: true/);
       assert.match(content, /Read and follow.*\[workflow-execution\]\(\.\.\/workflow-execution\/SKILL\.md\)/);
     }
+    for (const name of ['vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
+      const content = fs.readFileSync(path.join(skillsRoot, name, 'SKILL.md'), 'utf8');
+      assert.match(content, new RegExp(`name: ${name}`));
+      assert.match(content, /disable-model-invocation: true/);
+      assert.match(content, /\[vue-testing\]\(\.\.\/vue-testing\/SKILL\.md\)/);
+    }
     for (const supporting of ['workflow-execution', 'vue-testing']) {
       const content = fs.readFileSync(path.join(skillsRoot, supporting, 'SKILL.md'), 'utf8');
       assert.match(content, new RegExp(`name: ${supporting}`));
       assert.match(content, /user-invocable: false/);
       assert.doesNotMatch(content, /disable-model-invocation: true/);
     }
-    for (const retired of ['shared-vue-testing-context', 'vue-testing-library-black-box', 'vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
+    for (const retired of ['shared-vue-testing-context', 'vue-testing-library-black-box']) {
       assert.equal(fs.existsSync(path.join(skillsRoot, retired)), false, retired);
     }
     for (const phase of phases) {

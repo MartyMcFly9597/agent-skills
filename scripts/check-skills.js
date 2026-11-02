@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const YAML = require('yaml');
 
 const PHASE_SKILLS = new Set([
   'story-planner',
@@ -108,42 +109,23 @@ function parseFrontmatter(content) {
   if (lines[0] !== '---') return null;
   const end = lines.indexOf('---', 1);
   if (end < 0) return null;
-  const fields = new Map();
-  for (const line of lines.slice(1, end)) {
-    const separator = line.indexOf(':');
-    if (separator < 1) continue;
-    const name = line.slice(0, separator).trim();
-    if (!isMetadataKey(name)) continue;
-    let value = line.slice(separator + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    fields.set(name, value);
-  }
-  return fields;
-}
-
-function isMetadataKey(name) {
-  for (const character of name) {
-    const isUpper = character >= 'A' && character <= 'Z';
-    const isLower = character >= 'a' && character <= 'z';
-    const isDigit = character >= '0' && character <= '9';
-    if (!isUpper && !isLower && !isDigit && character !== '_' && character !== '-') return false;
-  }
-  return name.length > 0;
+  const document = YAML.parseDocument(lines.slice(1, end).join('\n'), { uniqueKeys: true });
+  if (document.errors.length > 0 || !YAML.isMap(document.contents)) return null;
+  const fields = document.toJS();
+  return new Map(Object.entries(fields));
 }
 
 function validateSkillMetadata(skillName, fields, displayPath, seenNames, report) {
   const name = fields.get('name');
   const description = fields.get('description');
   const checks = [
-    [name === skillName && isSkillName(name), 'name must be a unique lowercase slug matching its folder'],
-    [Boolean(description) && description.length <= 1024, 'description is missing or exceeds 1024 characters'],
-    [fields.get('disable-model-invocation') === 'true', 'explicit workflow must disable model invocation'],
-    [fields.get('user-invocable') !== 'false', 'explicit workflow must remain user-invocable'],
+    [typeof name === 'string' && name === skillName && isSkillName(name), 'name must be a unique lowercase slug matching its folder'],
+    [typeof description === 'string' && Boolean(description) && description.length <= 1024, 'description is missing or exceeds 1024 characters'],
+    [typeof fields.get('disable-model-invocation') === 'boolean', 'disable-model-invocation must be a boolean'],
+    [fields.get('disable-model-invocation') === true, 'explicit workflow must disable model invocation'],
+    [!fields.has('user-invocable') || typeof fields.get('user-invocable') === 'boolean', 'user-invocable must be a boolean'],
+    [fields.get('user-invocable') !== false, 'explicit workflow must remain user-invocable'],
+    [!fields.has('argument-hint') || typeof fields.get('argument-hint') === 'string', 'argument-hint must be a string'],
   ];
   let valid = true;
   for (const [passed, message] of checks) {
@@ -308,7 +290,7 @@ function decodeLinkTarget(target, sourcePath, report) {
   }
 }
 
-function validateMarkdownLink(root, filePath, sourcePath, target, report) {
+function validateMarkdownLink(root, filePath, sourcePath, target, report, shippedPaths) {
   const lowered = target.toLowerCase();
   if (!target || target.startsWith('#') || lowered.startsWith('http:') || lowered.startsWith('https:') || lowered.startsWith('mailto:') || lowered.startsWith('data:')) return false;
   const destination = decodeLinkTarget(target, sourcePath, report);
@@ -319,18 +301,25 @@ function validateMarkdownLink(root, filePath, sourcePath, target, report) {
     report.fail(sourcePath, 'relative Markdown link escapes the checked root');
     return false;
   }
-  if (!fs.existsSync(resolved)) report.fail(sourcePath, 'relative Markdown link target is missing');
+  if (!fs.existsSync(resolved)) {
+    report.fail(sourcePath, 'relative Markdown link target is missing');
+    return false;
+  }
+  if (shippedPaths && !shippedPaths.has(relativePath(root, resolved))) {
+    report.fail(sourcePath, 'relative Markdown link target is not included in shipped package');
+    return false;
+  }
   return true;
 }
 
-function validateMarkdownLinks(root, files, report) {
+function validateMarkdownLinks(root, files, report, shippedPaths) {
   let checked = 0;
   for (const filePath of markdownFiles(files)) {
     const content = readTextFile(filePath);
     if (content === null) continue;
     const sourcePath = relativePath(root, filePath);
     for (const { target } of extractMarkdownLinks(content)) {
-      if (validateMarkdownLink(root, filePath, sourcePath, target, report)) checked += 1;
+      if (validateMarkdownLink(root, filePath, sourcePath, target, report, shippedPaths)) checked += 1;
     }
   }
   report.pass('Markdown links', `${checked} relative links checked`);
@@ -420,9 +409,23 @@ function collectPackageRelativePaths(packageRoot) {
   return [...included];
 }
 
+function collectShippedPaths(packageFiles) {
+  const shippedPaths = new Set(packageFiles);
+  shippedPaths.add('');
+  for (const file of packageFiles) {
+    let directory = path.posix.dirname(file);
+    while (directory !== '.') {
+      shippedPaths.add(directory);
+      directory = path.posix.dirname(directory);
+    }
+  }
+  return shippedPaths;
+}
+
 function loadDenylist() {
   const denylistPath = process.env.PRIVACY_DENYLIST;
-  if (!denylistPath || !fs.existsSync(denylistPath)) return [];
+  if (!denylistPath) return [];
+  if (!fs.existsSync(denylistPath)) throw new Error('configured privacy deny-list file does not exist');
   return splitLines(fs.readFileSync(denylistPath, 'utf8'))
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#'))
@@ -545,11 +548,12 @@ function isIssueKeyBoundary(line, start, end) {
 }
 
 function hasIssueKey(line) {
-  for (let index = 0; index < line.length; index += 1) {
-    const code = line.codePointAt(index);
+  const normalizedLine = line.toUpperCase();
+  for (let index = 0; index < normalizedLine.length; index += 1) {
+    const code = normalizedLine.codePointAt(index);
     if (code < 65 || code > 90) continue;
-    const end = issueKeyEnd(line, index);
-    if (end > 0 && isIssueKeyBoundary(line, index, end)) return true;
+    const end = issueKeyEnd(normalizedLine, index);
+    if (end > 0 && isIssueKeyBoundary(normalizedLine, index, end)) return true;
   }
   return false;
 }
@@ -643,7 +647,13 @@ function scanPrivacyLine(root, filePath, line, lineNumber, denylist, report) {
 }
 
 function scanPrivacy(root, files, report) {
-  const denylist = loadDenylist();
+  let denylist;
+  try {
+    denylist = loadDenylist();
+  } catch (error) {
+    report.fail('PRIVACY_DENYLIST', error.message);
+    return;
+  }
   let scanned = 0;
   for (const filePath of files) {
     const content = readTextFile(filePath);
@@ -703,9 +713,11 @@ function main() {
 
   let linkFiles = files;
   let privacyFiles = files;
+  let shippedPaths;
   if (options.shipped) {
     try {
       const packagePaths = collectPackageRelativePaths(options.packageRoot);
+      shippedPaths = collectShippedPaths(packagePaths);
       linkFiles = packagePaths
         .map((relative) => path.join(options.root, ...relative.split('/')))
         .filter((filePath) => fs.existsSync(filePath) && fs.statSync(filePath).isFile());
@@ -715,7 +727,7 @@ function main() {
       console.error(`Checker error: ${error.message}`);
     }
   }
-  validateMarkdownLinks(options.root, linkFiles, report);
+  validateMarkdownLinks(options.root, linkFiles, report, shippedPaths);
   scanPrivacy(options.root, privacyFiles, report);
 
   console.log(`Summary: ${report.counts.pass} pass, ${report.counts.review} review, ${report.counts.fail} fail`);
