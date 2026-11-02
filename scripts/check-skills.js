@@ -289,12 +289,18 @@ function firstWhitespacePart(value) {
 }
 
 function findInlineTargetEnd(content, start) {
+  let lineEnd = content.indexOf('\n', start);
+  if (lineEnd < 0) lineEnd = content.length;
+  const carriageReturn = content.indexOf('\r', start);
+  if (carriageReturn >= 0 && carriageReturn < lineEnd) lineEnd = carriageReturn;
   if (content[start] === '<') {
     const angleEnd = content.indexOf('>', start + 1);
-    return angleEnd < 0 ? -1 : content.indexOf(')', angleEnd + 1);
+    if (angleEnd < 0 || angleEnd >= lineEnd) return -1;
+    const targetEnd = content.indexOf(')', angleEnd + 1);
+    return targetEnd < 0 || targetEnd >= lineEnd ? -1 : targetEnd;
   }
   let nestedParens = 0;
-  for (let index = start; index < content.length; index += 1) {
+  for (let index = start; index < lineEnd; index += 1) {
     if (content[index] === '\\') {
       index += 1;
       continue;
@@ -318,7 +324,10 @@ function extractInlineMarkdownLinks(content, links) {
       continue;
     }
     const targetEnd = findInlineTargetEnd(content, labelEnd + 2);
-    if (targetEnd < 0) return;
+    if (targetEnd < 0) {
+      cursor = labelEnd + 2;
+      continue;
+    }
     const rawTarget = content.slice(labelEnd + 2, targetEnd);
     links.push({ target: normalizeInlineTarget(rawTarget), offset: opening });
     cursor = targetEnd + 1;

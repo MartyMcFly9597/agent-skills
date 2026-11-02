@@ -45,13 +45,14 @@ The example app-family names above describe an extension convention, not additio
 
 ## Install Into a Workspace
 
-The repository's installer copies skills to the Copilot workspace location `.github/skills`.
+The installer copies skills to `.github/skills`. Add `--with-prompts` to also install the Local compatibility entrypoints under `.github/prompts`; those short prompts delegate to the canonical skill files.
 
 ```powershell
 npm run skills:install -- C:\path\to\workspace
+npm run skills:install -- C:\path\to\workspace --with-prompts
 ```
 
-The installer is invoked from this repository. It supports `--force`, `--dry-run`, and `--source <path>`.
+The installer supports `--force`, `--dry-run`, and `--source <path>` in any order. If no target is supplied, it installs into the current directory.
 
 ### Updating an Existing Installation
 
@@ -67,6 +68,7 @@ Their reusable testing guidance is now in `vue-testing`; the distinct Vue bug-fi
 ```powershell
 node bin/skills.js list
 node bin/skills.js install C:\path\to\workspace
+node bin/skills.js install C:\path\to\workspace --with-prompts
 node bin/skills.js doctor
 ```
 
@@ -76,7 +78,7 @@ node bin/skills.js doctor
 
 Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter containing a unique lowercase, hyphenated `name` matching the folder and a `description` stating what the skill does and when to use it. Explicit workflows should include `disable-model-invocation: true`. Keep all skills and supporting examples organization-neutral.
 
-See `.github/skills/README.md` for the authoring baseline. Workflow instructions live in `.github/skills`; no prompt-file copies are maintained. The migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` and is not included in npm packages.
+See `.github/skills/README.md` for the authoring baseline. Workflow instructions live in `.github/skills`; optional prompt files are compatibility shims only. The migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` and is not included in npm packages.
 
 Run the repository checks with:
 

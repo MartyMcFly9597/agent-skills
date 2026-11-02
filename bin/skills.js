@@ -26,10 +26,6 @@ function getArgValue(args, flag) {
   return args[idx + 1];
 }
 
-function hasFlag(args, flag) {
-  return args.includes(flag);
-}
-
 function normalize(p) {
   return path.resolve(p);
 }
@@ -105,25 +101,60 @@ function listSkills(sourceRoot) {
   }
 }
 
+function parseInstallArgs(args) {
+  const options = { target: undefined, source: undefined, force: false, dryRun: false, withPrompts: false };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--source') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) throw new Error('--source requires a path');
+      options.source = args[index + 1];
+      index += 1;
+    } else if (argument === '--force') {
+      options.force = true;
+    } else if (argument === '--dry-run') {
+      options.dryRun = true;
+    } else if (argument === '--with-prompts') {
+      options.withPrompts = true;
+    } else if (argument.startsWith('--')) {
+      throw new Error(`Unknown option: ${argument}`);
+    } else if (options.target === undefined) {
+      options.target = argument;
+    } else {
+      throw new Error(`Unexpected argument: ${argument}`);
+    }
+  }
+
+  return options;
+}
+
 function runInstall(args) {
-  if (args.includes('--with-prompts')) {
-    console.error('Unknown option: --with-prompts. This installer installs Copilot skills only.');
+  let options;
+  try {
+    options = parseInstallArgs(args);
+  } catch (error) {
+    console.error(error.message);
     process.exitCode = 2;
     return;
   }
-  const targetArg = args.find((a) => !a.startsWith("--"));
-  const targetRoot = normalize(targetArg || process.cwd());
-  const sourceRoot = normalize(getArgValue(args, "--source") || defaultSourceRoot());
-  const force = hasFlag(args, "--force");
-  const dryRun = hasFlag(args, "--dry-run");
+  const targetRoot = normalize(options.target || process.cwd());
+  const sourceRoot = normalize(options.source || defaultSourceRoot());
+  const force = options.force;
+  const dryRun = options.dryRun;
 
   const srcSkills = path.join(sourceRoot, ".github", "skills");
-
+  const srcPrompts = path.join(sourceRoot, '.github', 'prompts');
   const destSkills = path.join(targetRoot, ".github", "skills");
+  const destPrompts = path.join(targetRoot, '.github', 'prompts');
 
   if (!fs.existsSync(srcSkills)) {
     console.error(`Source skills directory not found: ${srcSkills}`);
     process.exit(1);
+  }
+  if (options.withPrompts && !fs.existsSync(srcPrompts)) {
+    console.error(`Source prompts directory not found: ${srcPrompts}`);
+    process.exitCode = 1;
+    return;
   }
 
   console.log(`Source: ${sourceRoot}`);
@@ -135,11 +166,18 @@ function runInstall(args) {
     console.error("No source skills directory found.");
     process.exit(1);
   }
+  const promptResult = options.withPrompts
+    ? copyDirRecursive(srcPrompts, destPrompts, { force, dryRun })
+    : { copied: 0, skipped: 0 };
 
   console.log("");
   console.log("Install summary:");
   console.log(`- skills copied: ${skillResult.copied}`);
   console.log(`- skills skipped: ${skillResult.skipped}`);
+  if (options.withPrompts) {
+    console.log(`- prompts copied: ${promptResult.copied}`);
+    console.log(`- prompts skipped: ${promptResult.skipped}`);
+  }
 
   if (dryRun) {
     console.log("\nDry run complete. No files were written.");

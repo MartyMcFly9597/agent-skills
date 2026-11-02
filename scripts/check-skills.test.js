@@ -62,6 +62,15 @@ test('validates reference-style relative Markdown targets', () => {
   assert.match(result.stderr, /relative Markdown link target is missing/);
 });
 
+test('continues link scanning after an unterminated link-like line', () => {
+  const result = runChecker('[unfinished](some text\n[guide](docs/guide.md)\n', {
+    'docs/guide.md': '# Guide\n',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /1 relative links checked/);
+});
+
 test('ignores Markdown links inside fenced code blocks', () => {
   const result = runChecker('```md\n[example](missing.md)\n```\n');
 

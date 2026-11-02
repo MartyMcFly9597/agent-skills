@@ -18,6 +18,7 @@ Keep this directory flat for the documented Copilot discovery layout. Use descri
 | --- | --- |
 | Story entry points | [story-planner](./story-planner/SKILL.md), [story-implementer](./story-implementer/SKILL.md), [story-verifier](./story-verifier/SKILL.md) |
 | Bug entry points | [bug-investigate](./bug-investigate/SKILL.md), [bug-fix](./bug-fix/SKILL.md), [bug-verify](./bug-verify/SKILL.md) |
+| Vue bug entry points | [vue-bug-fixer-regression-guard](./vue-bug-fixer-regression-guard/SKILL.md), [vue-bug-fix-reviewer](./vue-bug-fix-reviewer/SKILL.md) |
 | Review entry point | [pr-review](./pr-review/SKILL.md) |
 | Workflow support | [workflow-execution](./workflow-execution/SKILL.md) |
 | Technology support | [vue-testing](./vue-testing/SKILL.md) |

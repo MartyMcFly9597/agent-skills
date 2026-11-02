@@ -10,7 +10,7 @@ const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 test('installed workflows retain distinct Jira and Vue entry points', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
   try {
-    const installed = runInstaller([target]);
+    const installed = runInstaller([target, '--with-prompts']);
     assert.equal(installed.status, 0, installed.stderr);
     const skillsRoot = path.join(target, '.github', 'skills');
     const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
@@ -18,6 +18,18 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
       const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
       assert.match(content, /disable-model-invocation: true/);
       assert.match(content, /Read and follow.*\[workflow-execution\]\(\.\.\/workflow-execution\/SKILL\.md\)/);
+    }
+    for (const prompt of [
+      'story-plan.prompt.md',
+      'story-implement.prompt.md',
+      'story-verify.prompt.md',
+      'bug-investigate.prompt.md',
+      'bug-fix.prompt.md',
+      'bug-verify.prompt.md',
+    ]) {
+      const content = fs.readFileSync(path.join(target, '.github', 'prompts', prompt), 'utf8');
+      assert.match(content, /\.\.\/skills\/[a-z-]+\/SKILL\.md/);
+      assert.doesNotMatch(content, /\.codex\//);
     }
     for (const name of ['vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
       const content = fs.readFileSync(path.join(skillsRoot, name, 'SKILL.md'), 'utf8');
@@ -49,8 +61,8 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
   }
 });
 
-function runInstaller(args) {
-  return spawnSync(process.execPath, [INSTALLER, 'install', ...args], { encoding: 'utf8' });
+function runInstaller(args, options = {}) {
+  return spawnSync(process.execPath, [INSTALLER, 'install', ...args], { encoding: 'utf8', ...options });
 }
 
 test('installer copies skills only and keeps dry-run side-effect free', () => {
@@ -61,7 +73,7 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
     fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
     fs.mkdirSync(path.join(source, '.github', 'prompts'), { recursive: true });
     fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
-    fs.writeFileSync(path.join(source, '.github', 'prompts', 'sample.prompt.md'), '# Prompt\n');
+    fs.writeFileSync(path.join(source, '.github', 'prompts', 'sample.prompt.md'), 'Use [sample](../skills/sample/SKILL.md).\n');
 
     const result = runInstaller([target, '--source', source, '--dry-run']);
 
@@ -73,6 +85,10 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
     assert.equal(installed.status, 0, installed.stderr);
     assert.equal(fs.existsSync(path.join(target, '.github', 'skills', 'sample', 'SKILL.md')), true);
     assert.equal(fs.existsSync(path.join(target, '.github', 'prompts')), false);
+
+    const promptsInstalled = runInstaller([target, '--source', source, '--with-prompts', '--force']);
+    assert.equal(promptsInstalled.status, 0, promptsInstalled.stderr);
+    assert.equal(fs.readFileSync(path.join(target, '.github', 'prompts', 'sample.prompt.md'), 'utf8'), 'Use [sample](../skills/sample/SKILL.md).\n');
 
     const existingSkill = path.join(target, '.github', 'skills', 'sample', 'SKILL.md');
     fs.mkdirSync(path.dirname(existingSkill), { recursive: true });
@@ -93,7 +109,7 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
   }
 });
 
-test('installer rejects the obsolete prompt-copy option', () => {
+test('installer accepts --with-prompts and copies Local compatibility prompts', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-install-test-'));
   try {
     const source = path.join(root, 'source');
@@ -101,22 +117,83 @@ test('installer rejects the obsolete prompt-copy option', () => {
     fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
     fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
 
+    fs.mkdirSync(path.join(source, '.github', 'prompts'), { recursive: true });
+    fs.writeFileSync(path.join(source, '.github', 'prompts', 'sample.prompt.md'), 'Use [sample](../skills/sample/SKILL.md).\n');
+
     const result = runInstaller([target, '--source', source, '--with-prompts']);
 
-    assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /unknown option: --with-prompts/i);
-    assert.equal(fs.existsSync(target), false);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.readFileSync(path.join(target, '.github', 'prompts', 'sample.prompt.md'), 'utf8'), 'Use [sample](../skills/sample/SKILL.md).\n');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('npm package allowlist excludes prompt files', () => {
+test('npm package allowlist includes optional Local compatibility prompts', () => {
   const packageJson = require('../package.json');
 
-  assert.deepEqual(packageJson.files, ['bin', '.github/skills', 'README.md']);
-  assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts')), false);
+  assert.deepEqual(packageJson.files, ['bin', '.github/skills', '.github/prompts', 'README.md']);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts', 'story-plan.prompt.md')), true);
+  for (const prompt of [
+    'story-plan.prompt.md',
+    'story-implement.prompt.md',
+    'story-verify.prompt.md',
+    'bug-investigate.prompt.md',
+    'bug-fix.prompt.md',
+    'bug-verify.prompt.md',
+  ]) {
+    assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts', prompt)), true, prompt);
+  }
   assert.equal(fs.existsSync(path.join(__dirname, '..', '.codex', 'prompts')), false);
+});
+
+test('installer skips --source values when selecting a positional target', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-source-order-test-'));
+  try {
+    const source = path.join(root, 'source');
+    const target = path.join(root, 'target');
+    const sourceSkill = path.join(source, '.github', 'skills', 'sample', 'SKILL.md');
+    fs.mkdirSync(path.dirname(sourceSkill), { recursive: true });
+    fs.mkdirSync(target, { recursive: true });
+    fs.writeFileSync(sourceSkill, '# Source skill\n');
+
+    const result = runInstaller(['--source', source, target]);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.readFileSync(path.join(target, '.github', 'skills', 'sample', 'SKILL.md'), 'utf8'), '# Source skill\n');
+    assert.equal(fs.existsSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md')), true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('installer defaults target to cwd when --source is the only path argument', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-source-default-test-'));
+  try {
+    const source = path.join(root, 'source');
+    const target = path.join(root, 'target');
+    const sourceSkill = path.join(source, '.github', 'skills', 'sample', 'SKILL.md');
+    fs.mkdirSync(path.dirname(sourceSkill), { recursive: true });
+    fs.mkdirSync(target, { recursive: true });
+    fs.writeFileSync(sourceSkill, '# Source skill\n');
+
+    const result = runInstaller(['--source', source], { cwd: target });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(fs.readFileSync(path.join(target, '.github', 'skills', 'sample', 'SKILL.md'), 'utf8'), '# Source skill\n');
+    assert.equal(fs.existsSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md')), true);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('lockfile resolves dependencies from the public npm registry', () => {
+  const lockfile = require('../package-lock.json');
+
+  for (const [name, dependency] of Object.entries(lockfile.packages)) {
+    if (!name.startsWith('node_modules/')) continue;
+    assert.match(dependency.resolved, /^https:\/\/registry\.npmjs\.org\//, name);
+  }
 });
 
 test('installer preserves existing files unless force is specified', () => {

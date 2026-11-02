@@ -10,6 +10,7 @@
   "files": [
     "bin",
     ".github/skills",
+    ".github/prompts",
     "README.md"
   ],
   "scripts": {
