@@ -62,6 +62,8 @@ The installer preserves destination-only files, including with `--force`; it doe
 
 Their reusable testing guidance is now in `vue-testing`; the distinct Vue bug-fixer and bug-review skills remain available. Run installation with `--dry-run` first and use `--force` only when overwriting existing skill files is intended.
 
+Older installations may also contain prompt files from the former compatibility setup. The current installer does not manage or remove prompts; after preserving any local customizations, remove the stale `.github/prompts` copies from the target workspace.
+
 ## Installer CLI
 
 ```powershell
