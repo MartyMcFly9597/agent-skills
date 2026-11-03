@@ -94,6 +94,14 @@ test('does not treat escaped backticks as inline code delimiters', () => {
   assert.match(result.stderr, /relative Markdown link target is missing/);
 });
 
+test('does not mask links across Markdown paragraphs when code spans are unmatched', () => {
+  const content = ['An unmatched ` delimiter.', '', '[broken](missing.md)', '', 'Another ` delimiter.'].join('\n');
+  const result = runChecker(content);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+});
+
 test('validates multiline inline Markdown destinations', () => {
   const result = runChecker('[guide](\n  docs/missing.md\n)\n');
 
@@ -159,6 +167,23 @@ test('rejects non-string required metadata values', () => {
   assert.match(result.stderr, /description is missing or exceeds 1024 characters/);
 });
 
+test('fails on invalid metadata for supporting skills', () => {
+  const result = runChecker('# Public package\n', {
+    '.github/skills/vue-testing/SKILL.md': [
+      '---',
+      'name: wrong-name',
+      'description: 123',
+      'user-invocable: false',
+      '---',
+      '',
+    ].join('\n'),
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /name must be a unique lowercase slug matching its folder/);
+  assert.match(result.stderr, /description is missing or exceeds 1024 characters/);
+});
+
 test('counts existing reference-style relative Markdown targets', () => {
   const result = runChecker('[guide][docs]\n\n[docs]: docs/guide.md\n', {
     'docs/guide.md': '# Guide\n',
@@ -175,6 +200,32 @@ test('limits shipped Markdown link checks to package allowlist files', () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /0 relative links checked/);
+});
+
+test('validates shipped support files in directories skipped by the repository scan', () => {
+  const packageDirectories = ['dist', 'build', 'coverage'];
+  const extraFiles = Object.fromEntries(packageDirectories.map((directory) => [
+    `${directory}/guide.md`,
+    '[missing](missing.md)\n',
+  ]));
+  const result = runChecker('# Public package\n', extraFiles, ['--shipped', '--package-root', '__ROOT__'], packageDirectories);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+});
+
+test('privacy scans shipped files in directories skipped by the repository scan', () => {
+  const packageDirectories = ['dist', 'build', 'coverage'];
+  const extraFiles = Object.fromEntries(packageDirectories.map((directory) => [
+    `${directory}/guide.md`,
+    `Issue: ${directory.toUpperCase()}-123\n`,
+  ]));
+  const result = runChecker('# Public package\n', extraFiles, ['--shipped', '--package-root', '__ROOT__'], packageDirectories);
+
+  assert.equal(result.status, 0, result.stderr);
+  for (const directory of packageDirectories) {
+    assert.match(result.stdout, new RegExp(`REVIEW ${directory}\\/guide\\.md:1 issue-key-shaped identifier`));
+  }
 });
 
 test('rejects shipped Markdown links to files excluded from the package', () => {
@@ -349,6 +400,22 @@ test('fails when the configured privacy denylist does not exist', () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /configured privacy deny-list file does not exist/);
+});
+
+test('reports invalid denylist regex at its original file line', () => {
+  const denylistPath = path.join(os.tmpdir(), `skills-invalid-denylist-${process.pid}`);
+  fs.writeFileSync(denylistPath, '# first comment\n\n[\n');
+  try {
+    const result = runChecker('# Public package\n', {}, [], undefined, true, {
+      ...process.env,
+      PRIVACY_DENYLIST: denylistPath,
+    });
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /regular expression on line 3/);
+  } finally {
+    fs.rmSync(denylistPath, { force: true });
+  }
 });
 
 test('reports lowercase and mixed-case issue keys in the privacy review', () => {

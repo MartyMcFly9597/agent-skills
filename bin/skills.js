@@ -23,7 +23,9 @@ Examples:
 function getArgValue(args, flag) {
   const idx = args.indexOf(flag);
   if (idx === -1) return undefined;
-  return args[idx + 1];
+  const value = args[idx + 1];
+  if (!value || value.startsWith('--')) throw new Error(`${flag} requires a path`);
+  return value;
 }
 
 function normalize(p) {
@@ -189,18 +191,32 @@ function runDoctor(args) {
   }
 
   if (command === "list") {
-    const sourceRoot = normalize(getArgValue(rest, "--source") || defaultSourceRoot());
-    listSkills(sourceRoot);
+    try {
+      const sourceRoot = normalize(getArgValue(rest, "--source") || defaultSourceRoot());
+      listSkills(sourceRoot);
+    } catch (error) {
+      console.error(error.message);
+      process.exitCode = 2;
+    }
     return;
   }
 
   if (command === "install") {
+    if (rest.includes('--help') || rest.includes('-h')) {
+      printHelp();
+      return;
+    }
     runInstall(rest);
     return;
   }
 
   if (command === "doctor") {
-    runDoctor(rest);
+    try {
+      runDoctor(rest);
+    } catch (error) {
+      console.error(error.message);
+      process.exitCode = 2;
+    }
     return;
   }
 

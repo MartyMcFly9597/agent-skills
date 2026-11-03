@@ -14,6 +14,26 @@ test('CLI help does not advertise prompt installation', () => {
   assert.doesNotMatch(result.stdout, /--with-prompts|\.github\/prompts/);
 });
 
+test('install -h shows help instead of creating a target directory', () => {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-install-help-test-'));
+  try {
+    const result = runInstaller(['-h'], { cwd });
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Usage:/);
+    assert.equal(fs.existsSync(path.join(cwd, '-h')), false);
+  } finally {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('list rejects a missing source path', () => {
+  const result = spawnSync(process.execPath, [INSTALLER, 'list', '--source'], { encoding: 'utf8' });
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /--source requires a path/);
+});
+
 test('installed workflows retain distinct Jira and Vue entry points', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
   try {

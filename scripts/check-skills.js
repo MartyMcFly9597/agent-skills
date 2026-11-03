@@ -14,6 +14,7 @@ const PHASE_SKILLS = new Set([
 ]);
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage']);
+const PACKAGE_SKIP_DIRS = new Set(['.git', 'node_modules']);
 
 function parseArgs(args) {
   const options = {
@@ -43,7 +44,7 @@ function parseArgs(args) {
   return options;
 }
 
-function walkFiles(root) {
+function walkFiles(root, skipDirs = SKIP_DIRS) {
   const files = [];
 
   function visit(directory) {
@@ -58,7 +59,7 @@ function walkFiles(root) {
       if (entry.isSymbolicLink()) continue;
       const fullPath = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        if (!SKIP_DIRS.has(entry.name)) visit(fullPath);
+        if (!skipDirs.has(entry.name)) visit(fullPath);
       } else if (entry.isFile()) {
         files.push(fullPath);
       }
@@ -115,16 +116,16 @@ function parseFrontmatter(content) {
   return new Map(Object.entries(fields));
 }
 
-function validateSkillMetadata(skillName, fields, displayPath, seenNames, report) {
+function validateSkillMetadata(skillName, fields, displayPath, seenNames, report, phaseSkill = false) {
   const name = fields.get('name');
   const description = fields.get('description');
   const checks = [
     [typeof name === 'string' && name === skillName && isSkillName(name), 'name must be a unique lowercase slug matching its folder'],
     [typeof description === 'string' && Boolean(description) && description.length <= 1024, 'description is missing or exceeds 1024 characters'],
-    [typeof fields.get('disable-model-invocation') === 'boolean', 'disable-model-invocation must be a boolean'],
-    [fields.get('disable-model-invocation') === true, 'explicit workflow must disable model invocation'],
+    [!fields.has('disable-model-invocation') || typeof fields.get('disable-model-invocation') === 'boolean', 'disable-model-invocation must be a boolean'],
+    [!phaseSkill || fields.get('disable-model-invocation') === true, 'explicit workflow must disable model invocation'],
     [!fields.has('user-invocable') || typeof fields.get('user-invocable') === 'boolean', 'user-invocable must be a boolean'],
-    [fields.get('user-invocable') !== false, 'explicit workflow must remain user-invocable'],
+    [!phaseSkill || fields.get('user-invocable') !== false, 'explicit workflow must remain user-invocable'],
     [!fields.has('argument-hint') || typeof fields.get('argument-hint') === 'string', 'argument-hint must be a string'],
   ];
   let valid = true;
@@ -159,19 +160,27 @@ function validatePhaseSkill(root, skillName, seenNames, report) {
     report.fail(displayPath, 'missing or invalid YAML frontmatter');
     return false;
   }
-  if (!validateSkillMetadata(skillName, fields, displayPath, seenNames, report)) return false;
+  if (!validateSkillMetadata(skillName, fields, displayPath, seenNames, report, true)) return false;
   report.pass(displayPath, 'frontmatter valid');
   return true;
 }
 
-function reviewNonPhaseSkills(root, report) {
+function validateSupportingSkills(root, seenNames, report) {
   try {
     for (const entry of fs.readdirSync(path.join(root, '.github', 'skills'), { withFileTypes: true })) {
       if (!entry.isDirectory() || PHASE_SKILLS.has(entry.name)) continue;
       const filePath = path.join(root, '.github', 'skills', entry.name, 'SKILL.md');
       if (!fs.existsSync(filePath)) continue;
-      const fields = parseFrontmatter(readTextFile(filePath) || '');
-      if (!fields) report.review(relativePath(root, filePath), 'non-phase skill lacks frontmatter (out of scope)');
+      const displayPath = relativePath(root, filePath);
+      const content = readTextFile(filePath);
+      const fields = content === null ? null : parseFrontmatter(content);
+      if (!fields) {
+        report.fail(displayPath, 'missing or invalid YAML frontmatter');
+        continue;
+      }
+      if (validateSkillMetadata(entry.name, fields, displayPath, seenNames, report)) {
+        report.pass(displayPath, 'frontmatter valid');
+      }
     }
   } catch {
     // Missing phase files are reported above; there are no other skill entries to review.
@@ -184,7 +193,7 @@ function validatePhaseSkills(root, report) {
   for (const skillName of PHASE_SKILLS) {
     if (validatePhaseSkill(root, skillName, seenNames, report)) validCount += 1;
   }
-  reviewNonPhaseSkills(root, report);
+  validateSupportingSkills(root, seenNames, report);
   report.pass('phase skills', `${validCount}/${PHASE_SKILLS.size} valid`);
 }
 
@@ -276,12 +285,14 @@ function maskMarkdownCode(content) {
     let runEnd = cursor + 1;
     while (characters[runEnd] === '`') runEnd += 1;
     const runLength = runEnd - cursor;
+    const paragraphBoundary = content.slice(cursor).search(/\r?\n[ \t]*\r?\n/);
+    const paragraphEnd = paragraphBoundary < 0 ? characters.length : cursor + paragraphBoundary;
     let search = runEnd;
     let closingStart = -1;
 
-    while (search < characters.length) {
+    while (search < paragraphEnd) {
       const nextTick = characters.indexOf('`', search);
-      if (nextTick < 0) break;
+      if (nextTick < 0 || nextTick >= paragraphEnd) break;
       let nextRunEnd = nextTick + 1;
       while (characters[nextRunEnd] === '`') nextRunEnd += 1;
       if (nextRunEnd - nextTick === runLength) {
@@ -537,7 +548,7 @@ function collectPackageRelativePaths(packageRoot) {
   const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
   if (!Array.isArray(packageJson.files)) throw new Error('package.json must declare a files array');
 
-  const relativeFiles = walkFiles(packageRoot).map((filePath) => relativePath(packageRoot, filePath));
+  const relativeFiles = walkFiles(packageRoot, PACKAGE_SKIP_DIRS).map((filePath) => relativePath(packageRoot, filePath));
   const included = new Set(['package.json']);
   for (const entry of packageJson.files) {
     const pattern = normalizePackagePattern(entry);
@@ -565,13 +576,13 @@ function loadDenylist() {
   if (!denylistPath) return [];
   if (!fs.existsSync(denylistPath)) throw new Error('configured privacy deny-list file does not exist');
   return splitLines(fs.readFileSync(denylistPath, 'utf8'))
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith('#'))
-    .map((line, index) => {
+    .map((line, index) => ({ line: line.trim(), lineNumber: index + 1 }))
+    .filter(({ line }) => line && !line.startsWith('#'))
+    .map(({ line, lineNumber }) => {
       try {
         return new RegExp(line, 'i');
       } catch {
-        throw new Error(`Invalid privacy deny-list regular expression on line ${index + 1}`);
+        throw new Error(`Invalid privacy deny-list regular expression on line ${lineNumber}`);
       }
     });
 }
