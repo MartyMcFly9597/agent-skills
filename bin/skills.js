@@ -8,7 +8,7 @@ function printHelp() {
 
 Usage:
   skills list [--source <path>]
-  skills install [target] [--force] [--dry-run] [--with-prompts] [--source <path>]
+  skills install [target] [--force] [--dry-run] [--source <path>]
   skills doctor [--source <path>]
 
 Examples:
@@ -16,7 +16,6 @@ Examples:
   skills install .
   skills install ../my-workspace
   skills install . --force
-  skills install . --with-prompts
   skills doctor
 `);
 }
@@ -103,7 +102,7 @@ function listSkills(sourceRoot) {
 }
 
 function parseInstallArgs(args) {
-  const options = { target: undefined, source: undefined, force: false, dryRun: false, withPrompts: false };
+  const options = { target: undefined, source: undefined, force: false, dryRun: false };
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -115,8 +114,6 @@ function parseInstallArgs(args) {
       options.force = true;
     } else if (argument === '--dry-run') {
       options.dryRun = true;
-    } else if (argument === '--with-prompts') {
-      options.withPrompts = true;
     } else if (argument.startsWith('--')) {
       throw new Error(`Unknown option: ${argument}`);
     } else if (options.target === undefined) {
@@ -144,20 +141,12 @@ function runInstall(args) {
   const dryRun = options.dryRun;
 
   const srcSkills = path.join(sourceRoot, ".github", "skills");
-  const srcPrompts = path.join(sourceRoot, '.github', 'prompts');
   const destSkills = path.join(targetRoot, ".github", "skills");
-  const destPrompts = path.join(targetRoot, '.github', 'prompts');
 
   if (!fs.existsSync(srcSkills)) {
     console.error(`Source skills directory not found: ${srcSkills}`);
     process.exit(1);
   }
-  if (options.withPrompts && !fs.existsSync(srcPrompts)) {
-    console.error(`Source prompts directory not found: ${srcPrompts}`);
-    process.exitCode = 1;
-    return;
-  }
-
   console.log(`Source: ${sourceRoot}`);
   console.log(`Target: ${targetRoot}`);
   console.log(`Mode: ${dryRun ? "dry-run" : "copy"}`);
@@ -167,18 +156,10 @@ function runInstall(args) {
     console.error("No source skills directory found.");
     process.exit(1);
   }
-  const promptResult = options.withPrompts
-    ? copyDirRecursive(srcPrompts, destPrompts, { force, dryRun })
-    : { copied: 0, skipped: 0 };
-
   console.log("");
   console.log("Install summary:");
   console.log(`- skills copied: ${skillResult.copied}`);
   console.log(`- skills skipped: ${skillResult.skipped}`);
-  if (options.withPrompts) {
-    console.log(`- prompts copied: ${promptResult.copied}`);
-    console.log(`- prompts skipped: ${promptResult.skipped}`);
-  }
 
   if (dryRun) {
     console.log("\nDry run complete. No files were written.");

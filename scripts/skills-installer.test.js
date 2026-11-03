@@ -7,36 +7,25 @@ const test = require('node:test');
 
 const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 
-test('CLI help documents optional prompt installation', () => {
+test('CLI help does not advertise prompt installation', () => {
   const result = spawnSync(process.execPath, [INSTALLER, '--help'], { encoding: 'utf8' });
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /--with-prompts/);
+  assert.doesNotMatch(result.stdout, /--with-prompts|\.github\/prompts/);
 });
 
 test('installed workflows retain distinct Jira and Vue entry points', () => {
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'workflow-skills-test-'));
   try {
-    const installed = runInstaller([target, '--with-prompts']);
+    const installed = runInstaller([target]);
     assert.equal(installed.status, 0, installed.stderr);
     const skillsRoot = path.join(target, '.github', 'skills');
+    assert.equal(fs.existsSync(path.join(target, '.github', 'prompts')), false);
     const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
     for (const phase of phases) {
       const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
       assert.match(content, /disable-model-invocation: true/);
       assert.match(content, /Read and follow.*\[workflow-execution\]\(\.\.\/workflow-execution\/SKILL\.md\)/);
-    }
-    for (const prompt of [
-      'story-plan.prompt.md',
-      'story-implement.prompt.md',
-      'story-verify.prompt.md',
-      'bug-investigate.prompt.md',
-      'bug-fix.prompt.md',
-      'bug-verify.prompt.md',
-    ]) {
-      const content = fs.readFileSync(path.join(target, '.github', 'prompts', prompt), 'utf8');
-      assert.match(content, /\.\.\/skills\/[a-z-]+\/SKILL\.md/);
-      assert.doesNotMatch(content, /\.codex\//);
     }
     for (const name of ['vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
       const content = fs.readFileSync(path.join(skillsRoot, name, 'SKILL.md'), 'utf8');
@@ -78,9 +67,7 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
     const source = path.join(root, 'source');
     const target = path.join(root, 'target');
     fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
-    fs.mkdirSync(path.join(source, '.github', 'prompts'), { recursive: true });
     fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
-    fs.writeFileSync(path.join(source, '.github', 'prompts', 'sample.prompt.md'), 'Use [sample](../skills/sample/SKILL.md).\n');
 
     const result = runInstaller([target, '--source', source, '--dry-run']);
 
@@ -92,10 +79,6 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
     assert.equal(installed.status, 0, installed.stderr);
     assert.equal(fs.existsSync(path.join(target, '.github', 'skills', 'sample', 'SKILL.md')), true);
     assert.equal(fs.existsSync(path.join(target, '.github', 'prompts')), false);
-
-    const promptsInstalled = runInstaller([target, '--source', source, '--with-prompts', '--force']);
-    assert.equal(promptsInstalled.status, 0, promptsInstalled.stderr);
-    assert.equal(fs.readFileSync(path.join(target, '.github', 'prompts', 'sample.prompt.md'), 'utf8'), 'Use [sample](../skills/sample/SKILL.md).\n');
 
     const existingSkill = path.join(target, '.github', 'skills', 'sample', 'SKILL.md');
     fs.mkdirSync(path.dirname(existingSkill), { recursive: true });
@@ -116,7 +99,7 @@ test('installer copies skills only and keeps dry-run side-effect free', () => {
   }
 });
 
-test('installer accepts --with-prompts and copies Local compatibility prompts', () => {
+test('installer rejects the removed --with-prompts option', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-install-test-'));
   try {
     const source = path.join(root, 'source');
@@ -124,33 +107,21 @@ test('installer accepts --with-prompts and copies Local compatibility prompts', 
     fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
     fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
 
-    fs.mkdirSync(path.join(source, '.github', 'prompts'), { recursive: true });
-    fs.writeFileSync(path.join(source, '.github', 'prompts', 'sample.prompt.md'), 'Use [sample](../skills/sample/SKILL.md).\n');
-
     const result = runInstaller([target, '--source', source, '--with-prompts']);
 
-    assert.equal(result.status, 0, result.stderr);
-    assert.equal(fs.readFileSync(path.join(target, '.github', 'prompts', 'sample.prompt.md'), 'utf8'), 'Use [sample](../skills/sample/SKILL.md).\n');
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /unknown option: --with-prompts/i);
+    assert.equal(fs.existsSync(target), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
-test('npm package allowlist includes optional Local compatibility prompts', () => {
+test('npm package allowlist contains Copilot skills but no prompt files', () => {
   const packageJson = require('../package.json');
 
-  assert.deepEqual(packageJson.files, ['bin', '.github/skills', '.github/prompts', 'README.md']);
-  assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts', 'story-plan.prompt.md')), true);
-  for (const prompt of [
-    'story-plan.prompt.md',
-    'story-implement.prompt.md',
-    'story-verify.prompt.md',
-    'bug-investigate.prompt.md',
-    'bug-fix.prompt.md',
-    'bug-verify.prompt.md',
-  ]) {
-    assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts', prompt)), true, prompt);
-  }
+  assert.deepEqual(packageJson.files, ['bin', '.github/skills', 'README.md']);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', '.github', 'prompts', 'story-plan.prompt.md')), false);
   assert.equal(fs.existsSync(path.join(__dirname, '..', '.codex', 'prompts')), false);
 });
 

@@ -45,11 +45,10 @@ The example app-family names above describe an extension convention, not additio
 
 ## Install Into a Workspace
 
-The installer copies skills to `.github/skills`. Add `--with-prompts` to also install the Local compatibility entrypoints under `.github/prompts`; those short prompts delegate to the canonical skill files.
+The installer copies Copilot skills to `.github/skills`.
 
 ```powershell
 npm run skills:install -- C:\path\to\workspace
-npm run skills:install -- C:\path\to\workspace --with-prompts
 ```
 
 The installer supports `--force`, `--dry-run`, and `--source <path>` in any order. If no target is supplied, it installs into the current directory.
@@ -63,12 +62,11 @@ The installer preserves destination-only files, including with `--force`; it doe
 
 Their reusable testing guidance is now in `vue-testing`; the distinct Vue bug-fixer and bug-review skills remain available. Run installation with `--dry-run` first and use `--force` only when overwriting existing skill files is intended.
 
-## Local CLI
+## Installer CLI
 
 ```powershell
 node bin/skills.js list
 node bin/skills.js install C:\path\to\workspace
-node bin/skills.js install C:\path\to\workspace --with-prompts
 node bin/skills.js doctor
 ```
 
@@ -78,7 +76,7 @@ node bin/skills.js doctor
 
 Create `.github/skills/<skill-name>/SKILL.md` with YAML frontmatter containing a unique lowercase, hyphenated `name` matching the folder and a `description` stating what the skill does and when to use it. Explicit workflows should include `disable-model-invocation: true`. Keep all skills and supporting examples organization-neutral.
 
-See `.github/skills/README.md` for the authoring baseline. Workflow instructions live in `.github/skills`; optional prompt files are compatibility shims only. The migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` and is not included in npm packages.
+See `.github/skills/README.md` for the authoring baseline. Workflow instructions and installable Copilot artifacts live in `.github/skills`. The migration catalog is maintained at `docs/migration/MIGRATION_MAP.md` and is not included in npm packages.
 
 Run the repository checks with:
 
