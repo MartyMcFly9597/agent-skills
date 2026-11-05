@@ -42,6 +42,13 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
     assert.equal(installed.status, 0, installed.stderr);
     const skillsRoot = path.join(target, '.github', 'skills');
     assert.equal(fs.existsSync(path.join(target, '.github', 'prompts')), false);
+    const checkedInstall = spawnSync(process.execPath, [
+      path.join(__dirname, 'check-skills.js'),
+      '--root',
+      target,
+    ], { encoding: 'utf8' });
+    assert.equal(checkedInstall.status, 0, checkedInstall.stderr);
+    assert.match(checkedInstall.stdout, /Markdown links: \d+ relative links checked/);
     const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
     for (const phase of phases) {
       const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
