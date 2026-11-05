@@ -440,8 +440,7 @@ function decodeLinkTarget(target, sourcePath, report) {
 }
 
 function validateMarkdownLink(root, filePath, sourcePath, target, report, shippedPaths) {
-  const lowered = target.toLowerCase();
-  if (!target || target.startsWith('#') || lowered.startsWith('http:') || lowered.startsWith('https:') || lowered.startsWith('mailto:') || lowered.startsWith('data:')) return false;
+  if (!target || target.startsWith('#') || /^[a-z][a-z\d+.-]*:/i.test(target)) return false;
   const destination = decodeLinkTarget(target, sourcePath, report);
   if (destination === null) return false;
   const resolved = path.resolve(path.dirname(filePath), destination);

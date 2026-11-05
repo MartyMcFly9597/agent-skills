@@ -300,6 +300,13 @@ test('validates inline relative Markdown targets', () => {
   assert.match(result.stderr, /relative Markdown link target is missing/);
 });
 
+test('accepts Markdown links with non-http URI schemes', () => {
+  const result = runChecker('[call](tel:+15551234) [open](vscode://file/path) [download](ftp://example.com/file)\n');
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /0 relative links checked/);
+});
+
 test('accepts angle-bracket and titled inline Markdown targets', () => {
   const result = runChecker('[angle](<docs/guide.md>) [titled](docs/guide.md "title")\n', {
     'docs/guide.md': '# Guide\n',
