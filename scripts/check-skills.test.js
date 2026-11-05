@@ -325,6 +325,59 @@ test('accepts parentheses in an angle-bracket Markdown destination', () => {
   assert.match(result.stdout, /1 relative links checked/);
 });
 
+test('validates links with balanced and escaped brackets in labels', () => {
+  const result = runChecker('[Guide [v2]](missing.md)\n[Guide \\[v3](also-missing.md)\n');
+
+  assert.equal(result.status, 1);
+  assert.equal((result.stderr.match(/relative Markdown link target is missing/g) || []).length, 2);
+});
+
+test('validates outer links around nested image links', () => {
+  const result = runChecker('[![guide](badge.svg)](missing.md)\n', {
+    'badge.svg': 'image',
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+  assert.match(result.stdout, /1 relative links checked/);
+});
+
+test('validates links nested in image alt text', () => {
+  const result = runChecker('![alt [link](missing.md)](badge.svg)\n', {
+    'badge.svg': 'image',
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /relative Markdown link target is missing/);
+  assert.match(result.stdout, /1 relative links checked/);
+});
+
+test('does not parse skill frontmatter values as Markdown links', () => {
+  const result = runChecker('# Public package\n', {
+    '.github/skills/bug-fix/SKILL.md': [
+      '---',
+      'name: bug-fix',
+      'description: "[example](missing.md)"',
+      'disable-model-invocation: true',
+      '---',
+      '',
+      '# Bug Fix',
+    ].join('\n'),
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /0 relative links checked/);
+});
+
+test('resolves escaped punctuation in inline and reference Markdown destinations', () => {
+  const result = runChecker('[inline](docs/guide\\(v2\\).md)\n\n[reference][guide]\n\n[guide]: docs/guide\\(v2\\).md\n', {
+    'docs/guide(v2).md': '# Guide\n',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /2 relative links checked/);
+});
+
 test('reports missing phase skills without crashing when the skills directory is absent', () => {
   const result = runChecker('# Public package\n', {}, [], ['README.md'], false);
 

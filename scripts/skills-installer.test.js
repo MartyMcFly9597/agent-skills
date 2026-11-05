@@ -145,6 +145,14 @@ test('npm package allowlist contains Copilot skills but no prompt files', () => 
   assert.equal(fs.existsSync(path.join(__dirname, '..', '.codex', 'prompts')), false);
 });
 
+test('package and lockfile require Node 22 or newer', () => {
+  const packageJson = require('../package.json');
+  const lockfile = require('../package-lock.json');
+
+  assert.equal(packageJson.engines.node, '>=22');
+  assert.equal(lockfile.packages[''].engines.node, '>=22');
+});
+
 test('installer skips --source values when selecting a positional target', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-source-order-test-'));
   try {

@@ -2,7 +2,10 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const MarkdownIt = require('markdown-it');
 const YAML = require('yaml');
+
+const markdownParser = new MarkdownIt();
 
 const PHASE_SKILLS = new Set([
   'story-planner',
@@ -203,226 +206,29 @@ function markdownFiles(files) {
 
 function extractMarkdownLinks(content) {
   const links = [];
-  const visibleContent = maskMarkdownCode(content);
-  extractInlineMarkdownLinks(visibleContent, links);
-  extractMarkdownDefinitions(visibleContent, links);
+  const markdown = stripFrontmatter(content);
+
+  function collectLinks(tokens) {
+    for (const token of tokens) {
+      const attribute = token.type === 'image' ? 'src' : token.type === 'link_open' ? 'href' : null;
+      if (attribute) {
+        const target = token.attrGet(attribute);
+        if (target !== null) links.push({ target });
+      }
+      if (token.children) collectLinks(token.children);
+    }
+  }
+
+  collectLinks(markdownParser.parse(markdown, {}));
   return links;
 }
 
-function parseFenceOpening(line) {
-  let cursor = 0;
-  while (line[cursor] === ' ' && cursor < 4) cursor += 1;
-  if (cursor > 3 || (line[cursor] !== '`' && line[cursor] !== '~')) return null;
-
-  const character = line[cursor];
-  const delimiterStart = cursor;
-  while (line[cursor] === character) cursor += 1;
-  const length = cursor - delimiterStart;
-  if (length < 3) return null;
-  if (character === '`' && line.slice(cursor).includes('`')) return null;
-  return { character, length };
-}
-
-function isFenceClosing(line, fence) {
-  let cursor = 0;
-  while (line[cursor] === ' ' && cursor < 4) cursor += 1;
-  if (cursor > 3) return false;
-
-  const delimiterStart = cursor;
-  while (line[cursor] === fence.character) cursor += 1;
-  if (cursor - delimiterStart < fence.length) return false;
-  while (line[cursor] === ' ' || line[cursor] === '\t') cursor += 1;
-  return cursor === line.length;
-}
-
-function maskMarkdownCode(content) {
-  const characters = content.split('');
-  let fence = null;
-  let lineStart = 0;
-
-  while (lineStart < content.length) {
-    let lineEnd = content.indexOf('\n', lineStart);
-    if (lineEnd < 0) lineEnd = content.length;
-    let textEnd = lineEnd;
-    if (textEnd > lineStart && content[textEnd - 1] === '\r') textEnd -= 1;
-    const line = content.slice(lineStart, textEnd);
-
-    if (fence) {
-      for (let index = lineStart; index < lineEnd; index += 1) {
-        if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
-      }
-      if (isFenceClosing(line, fence)) fence = null;
-    } else {
-      const opening = parseFenceOpening(line);
-      if (opening) {
-        fence = opening;
-        for (let index = lineStart; index < lineEnd; index += 1) {
-          if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
-        }
-      }
-    }
-
-    if (lineEnd === content.length) break;
-    lineStart = lineEnd + 1;
-  }
-
-  let cursor = 0;
-  while (cursor < characters.length) {
-    if (characters[cursor] !== '`') {
-      cursor += 1;
-      continue;
-    }
-
-    let precedingBackslashes = 0;
-    for (let index = cursor - 1; index >= 0 && characters[index] === '\\'; index -= 1) {
-      precedingBackslashes += 1;
-    }
-    if (precedingBackslashes % 2 === 1) {
-      cursor += 1;
-      continue;
-    }
-
-    let runEnd = cursor + 1;
-    while (characters[runEnd] === '`') runEnd += 1;
-    const runLength = runEnd - cursor;
-    const paragraphBoundary = content.slice(cursor).search(/\r?\n[ \t]*\r?\n/);
-    const paragraphEnd = paragraphBoundary < 0 ? characters.length : cursor + paragraphBoundary;
-    let search = runEnd;
-    let closingStart = -1;
-
-    while (search < paragraphEnd) {
-      const nextTick = characters.indexOf('`', search);
-      if (nextTick < 0 || nextTick >= paragraphEnd) break;
-      let nextRunEnd = nextTick + 1;
-      while (characters[nextRunEnd] === '`') nextRunEnd += 1;
-      if (nextRunEnd - nextTick === runLength) {
-        closingStart = nextTick;
-        break;
-      }
-      search = nextRunEnd;
-    }
-
-    if (closingStart < 0) {
-      cursor = runEnd;
-      continue;
-    }
-    for (let index = cursor; index < closingStart + runLength; index += 1) {
-      if (characters[index] !== '\r' && characters[index] !== '\n') characters[index] = ' ';
-    }
-    cursor = closingStart + runLength;
-  }
-
-  return characters.join('');
-}
-
-function normalizeInlineTarget(rawTarget) {
-  const target = rawTarget.trim();
-  if (target.startsWith('<')) {
-    const close = target.indexOf('>');
-    if (close >= 0) return target.slice(1, close);
-  }
-  return firstWhitespacePart(target);
-}
-
-function firstWhitespacePart(value) {
-  for (let index = 0; index < value.length; index += 1) {
-    if (value[index] === ' ' || value[index] === '\t' || value[index] === '\r' || value[index] === '\n') {
-      return value.slice(0, index);
-    }
-  }
-  return value;
-}
-
-function startsInlineLink(content, start) {
-  const labelEnd = content.indexOf(']', start + 1);
-  if (labelEnd < 0 || content[labelEnd + 1] !== '(') return false;
-  const lineFeed = content.indexOf('\n', start);
-  const carriageReturn = content.indexOf('\r', start);
-  const lineEnd = Math.min(
-    lineFeed < 0 ? content.length : lineFeed,
-    carriageReturn < 0 ? content.length : carriageReturn,
-  );
-  return labelEnd < lineEnd;
-}
-
-function findInlineTargetEnd(content, start) {
-  if (content[start] === '<') {
-    for (let index = start + 1; index < content.length; index += 1) {
-      if (content[index] === '\\') {
-        index += 1;
-        continue;
-      }
-      if (content[index] === ']' && startsInlineLink(content, index)) return -1;
-      if (content[index] === '>') {
-        for (let targetEnd = index + 1; targetEnd < content.length; targetEnd += 1) {
-          if (content[targetEnd] === '\\') {
-            targetEnd += 1;
-            continue;
-          }
-          if (content[targetEnd] === ']' && startsInlineLink(content, targetEnd)) return -1;
-          if (content[targetEnd] === ')') return targetEnd;
-        }
-        return -1;
-      }
-    }
-    return -1;
-  }
-  let nestedParens = 0;
-  for (let index = start; index < content.length; index += 1) {
-    if (content[index] === '\\') {
-      index += 1;
-      continue;
-    }
-    if (content[index] === '[' && startsInlineLink(content, index)) return -1;
-    if (content[index] === '(') nestedParens += 1;
-    if (content[index] !== ')') continue;
-    if (nestedParens === 0) return index;
-    nestedParens -= 1;
-  }
-  return -1;
-}
-
-function extractInlineMarkdownLinks(content, links) {
-  let cursor = 0;
-  while (cursor < content.length) {
-    const opening = content.indexOf('[', cursor);
-    if (opening < 0) return;
-    const labelEnd = content.indexOf(']', opening + 1);
-    if (labelEnd < 0 || content[labelEnd + 1] !== '(') {
-      cursor = opening + 1;
-      continue;
-    }
-    const targetEnd = findInlineTargetEnd(content, labelEnd + 2);
-    if (targetEnd < 0) {
-      cursor = labelEnd + 2;
-      continue;
-    }
-    const rawTarget = content.slice(labelEnd + 2, targetEnd);
-    links.push({ target: normalizeInlineTarget(rawTarget), offset: opening });
-    cursor = targetEnd + 1;
-  }
-}
-
-function extractMarkdownDefinitions(content, links) {
-  let offset = 0;
-  for (const line of splitLines(content)) {
-    const trimmed = line.trimStart();
-    if (line.length - trimmed.length > 3 || trimmed[0] !== '[') {
-      offset += line.length + 1;
-      continue;
-    }
-    const labelEnd = trimmed.indexOf(']');
-    if (labelEnd < 1 || trimmed[labelEnd + 1] !== ':') {
-      offset += line.length + 1;
-      continue;
-    }
-    const rawTarget = trimmed.slice(labelEnd + 2).trim();
-    const target = rawTarget.startsWith('<')
-      ? rawTarget.slice(1, rawTarget.indexOf('>'))
-      : firstWhitespacePart(rawTarget);
-    if (target) links.push({ target, offset });
-    offset += line.length + 1;
-  }
+function stripFrontmatter(content) {
+  const lines = splitLines(content);
+  if (lines[0] !== '---') return content;
+  const end = lines.indexOf('---', 1);
+  if (end < 0) return content;
+  return lines.slice(end + 1).join('\n');
 }
 
 function decodeLinkTarget(target, sourcePath, report) {

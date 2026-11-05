@@ -21,7 +21,7 @@
     "test": "node --test scripts/check-skills.test.js scripts/skills-installer.test.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "keywords": [
     "copilot",
@@ -30,6 +30,7 @@
     "vscode"
   ],
   "devDependencies": {
+    "markdown-it": "^15.0.3",
     "yaml": "^2.9.1"
   }
 }
