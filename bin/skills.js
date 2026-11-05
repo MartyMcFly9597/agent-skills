@@ -8,14 +8,14 @@ function printHelp() {
 
 Usage:
   skills list [--source <path>]
-  skills install [target] [--with-prompts] [--force] [--dry-run] [--source <path>]
+  skills install [target] [--force] [--dry-run] [--source <path>]
   skills doctor [--source <path>]
 
 Examples:
   skills list
   skills install .
-  skills install ../my-workspace --with-prompts
-  skills install . --with-prompts --force
+  skills install ../my-workspace
+  skills install . --force
   skills doctor
 `);
 }
@@ -23,11 +23,9 @@ Examples:
 function getArgValue(args, flag) {
   const idx = args.indexOf(flag);
   if (idx === -1) return undefined;
-  return args[idx + 1];
-}
-
-function hasFlag(args, flag) {
-  return args.includes(flag);
+  const value = args[idx + 1];
+  if (!value || value.startsWith('--')) throw new Error(`${flag} requires a path`);
+  return value;
 }
 
 function normalize(p) {
@@ -63,23 +61,21 @@ function processCopyEntry(srcPath, destPath, entry, options) {
 }
 
 function copyDirRecursive(srcDir, destDir, options) {
+  if (!fs.existsSync(srcDir)) return { copied: 0, skipped: 0, missing: true };
+
   let copied = 0;
   let skipped = 0;
-
-  if (!fs.existsSync(srcDir)) {
-    return { copied, skipped, missing: true };
-  }
-
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   for (const entry of entries) {
-    const srcPath = path.join(srcDir, entry.name);
-    const destPath = path.join(destDir, entry.name);
-
-    const result = processCopyEntry(srcPath, destPath, entry, options);
+    const result = processCopyEntry(
+      path.join(srcDir, entry.name),
+      path.join(destDir, entry.name),
+      entry,
+      options,
+    );
     copied += result.copied;
     skipped += result.skipped;
   }
-
   return { copied, skipped, missing: false };
 }
 
@@ -91,7 +87,10 @@ function listSkills(sourceRoot) {
   }
 
   const entries = fs.readdirSync(skillsDir, { withFileTypes: true });
-  const skillNames = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+  const skillNames = entries
+    .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(skillsDir, entry.name, 'SKILL.md')))
+    .map((entry) => entry.name)
+    .sort();
 
   if (skillNames.length === 0) {
     console.log("No skills found.");
@@ -104,25 +103,52 @@ function listSkills(sourceRoot) {
   }
 }
 
+function parseInstallArgs(args) {
+  const options = { target: undefined, source: undefined, force: false, dryRun: false };
+
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--source') {
+      if (!args[index + 1] || args[index + 1].startsWith('--')) throw new Error('--source requires a path');
+      options.source = args[index + 1];
+      index += 1;
+    } else if (argument === '--force') {
+      options.force = true;
+    } else if (argument === '--dry-run') {
+      options.dryRun = true;
+    } else if (argument.startsWith('--')) {
+      throw new Error(`Unknown option: ${argument}`);
+    } else if (options.target === undefined) {
+      options.target = argument;
+    } else {
+      throw new Error(`Unexpected argument: ${argument}`);
+    }
+  }
+
+  return options;
+}
+
 function runInstall(args) {
-  const targetArg = args.find((a) => !a.startsWith("--"));
-  const targetRoot = normalize(targetArg || process.cwd());
-  const sourceRoot = normalize(getArgValue(args, "--source") || defaultSourceRoot());
-  const includePrompts = hasFlag(args, "--with-prompts");
-  const force = hasFlag(args, "--force");
-  const dryRun = hasFlag(args, "--dry-run");
+  let options;
+  try {
+    options = parseInstallArgs(args);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 2;
+    return;
+  }
+  const targetRoot = normalize(options.target || process.cwd());
+  const sourceRoot = normalize(options.source || defaultSourceRoot());
+  const force = options.force;
+  const dryRun = options.dryRun;
 
   const srcSkills = path.join(sourceRoot, ".github", "skills");
-  const srcPrompts = path.join(sourceRoot, ".github", "prompts");
-
   const destSkills = path.join(targetRoot, ".github", "skills");
-  const destPrompts = path.join(targetRoot, ".github", "prompts");
 
   if (!fs.existsSync(srcSkills)) {
     console.error(`Source skills directory not found: ${srcSkills}`);
     process.exit(1);
   }
-
   console.log(`Source: ${sourceRoot}`);
   console.log(`Target: ${targetRoot}`);
   console.log(`Mode: ${dryRun ? "dry-run" : "copy"}`);
@@ -132,26 +158,10 @@ function runInstall(args) {
     console.error("No source skills directory found.");
     process.exit(1);
   }
-
-  let promptResult = { copied: 0, skipped: 0, missing: false };
-  if (includePrompts) {
-    promptResult = copyDirRecursive(srcPrompts, destPrompts, { force, dryRun });
-  }
-
   console.log("");
   console.log("Install summary:");
   console.log(`- skills copied: ${skillResult.copied}`);
   console.log(`- skills skipped: ${skillResult.skipped}`);
-
-  if (includePrompts) {
-    console.log(`- prompts copied: ${promptResult.copied}`);
-    console.log(`- prompts skipped: ${promptResult.skipped}`);
-    if (promptResult.missing) {
-      console.log("- prompts source missing: yes");
-    }
-  } else {
-    console.log("- prompts: not included (use --with-prompts)");
-  }
 
   if (dryRun) {
     console.log("\nDry run complete. No files were written.");
@@ -163,12 +173,10 @@ function runInstall(args) {
 function runDoctor(args) {
   const sourceRoot = normalize(getArgValue(args, "--source") || defaultSourceRoot());
   const skillsDir = path.join(sourceRoot, ".github", "skills");
-  const promptsDir = path.join(sourceRoot, ".github", "prompts");
 
   console.log("skills doctor");
   console.log(`- source root: ${sourceRoot}`);
   console.log(`- skills dir: ${skillsDir} (${fs.existsSync(skillsDir) ? "ok" : "missing"})`);
-  console.log(`- prompts dir: ${promptsDir} (${fs.existsSync(promptsDir) ? "ok" : "missing"})`);
   console.log(`- node: ${process.version}`);
 }
 
@@ -183,18 +191,32 @@ function runDoctor(args) {
   }
 
   if (command === "list") {
-    const sourceRoot = normalize(getArgValue(rest, "--source") || defaultSourceRoot());
-    listSkills(sourceRoot);
+    try {
+      const sourceRoot = normalize(getArgValue(rest, "--source") || defaultSourceRoot());
+      listSkills(sourceRoot);
+    } catch (error) {
+      console.error(error.message);
+      process.exitCode = 2;
+    }
     return;
   }
 
   if (command === "install") {
+    if (rest.includes('--help') || rest.includes('-h')) {
+      printHelp();
+      return;
+    }
     runInstall(rest);
     return;
   }
 
   if (command === "doctor") {
-    runDoctor(rest);
+    try {
+      runDoctor(rest);
+    } catch (error) {
+      console.error(error.message);
+      process.exitCode = 2;
+    }
     return;
   }
 

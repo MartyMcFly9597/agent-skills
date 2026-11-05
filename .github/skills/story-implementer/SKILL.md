@@ -1,52 +1,48 @@
-# Skill: Story Implementer
+---
+name: story-implementer
+description: Execute the next incomplete PLAN.md story step with focused tests and verification. Use when an approved plan is ready for implementation or needs a careful resume.
+argument-hint: "Story key or PLAN.md"
+disable-model-invocation: true
+---
+
+# Story Implementer
 
 ## Purpose
 
-Execute `PLAN.md` one step at a time with tests and verification before marking completion.
+Execute a valid `PLAN.md` one step at a time, with tests and verification before completion.
 
 ## When to use
 
-- `PLAN.md` exists and implementation is ready.
-- Controlled incremental execution is required.
+- A story has a valid `PLAN.md` and implementation is ready to begin.
+- Controlled incremental execution or a safe resume is required.
 
 ## Required inputs
 
 - Valid `PLAN.md`.
-- Repository codebase.
-- Jira story access for validation.
+- Current application repository.
+- Story details from an available issue-tracker integration, or pasted by the user, when needed to validate plan scope.
+- Optional separate e2e repository when a step declares `repo: e2e`.
 
 ## Procedure
 
-1. Read and validate `PLAN.md` against Jira story.
-2. Resume at first unchecked step.
-3. For each step:
-  - check `repo:` field to determine target repo (SPA or e2e)
-  - implement minimal safe change
-  - add or update tests
-  - run step verification commands
-  - confirm all `done_when` items
-  - mark `[x]` only after evidence
-4. Commit completed step in the appropriate repo before starting next step.
+Read and follow [workflow-execution](../workflow-execution/SKILL.md), applying its context and step execution rules to `PLAN.md`.
+
+1. Match the plan to the supplied story details. If missing or invalid, return to planning rather than improvising an implementation plan.
+2. If `repo: e2e` is specified, use the separate e2e repository; otherwise use the application repository. Confirm branch conventions in each repository.
+3. For frontend work, inspect a comparable screen or component. Reuse layout, shared styles/tokens, component patterns, and accessibility semantics; record necessary deviations in `PLAN.md`.
+4. Follow repository documentation conventions for public APIs. Add comments only for non-obvious intent or constraints.
+5. Add tests for the step's acceptance criteria and relevant regression risks. For bug-fix work, observe a reproducing test fail before implementation. For Vue component tests, read and follow [vue-testing](../vue-testing/SKILL.md).
+6. For e2e work, reuse the repository's page objects, fixtures, helpers, and spec conventions. Exercise actual visible interactions and discover the command for the specific spec.
+7. Complete the selected step under the shared verification, checkpoint, and reporting rules.
 
 ## Output contract
 
-- For each run report:
-  - resumed or next step
-  - what changed
-  - tests updated
-  - exact verification commands and results
-  - whether step was marked complete
-  - whether step commit was created
+- Use the shared step report, including acceptance-criteria coverage and any e2e gap.
 
 ## Non-negotiable rules
 
-- One step at a time.
-- Never skip tests.
-- Never skip verification.
-- Never mark completion early.
-- Never commit e2e changes in the SPA repo or vice versa.
+- Implementation must remain aligned with the story's acceptance criteria and selected plan step.
 
-## Source prompts
+## Related skills
 
-- `.codex/prompts/story/implement.md`
-- `.codex/prompts/story-agent.md`
+- Use `story-planner` to prepare a plan and `story-verifier` to review completion evidence.

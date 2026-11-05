@@ -1,38 +1,23 @@
-# Skill: Vue Bug Fix Reviewer
+---
+name: vue-bug-fix-reviewer
+description: Independently assess whether a proposed Vue bug fix is causal, complete, and regression-safe. Use when a Vue fix is ready for review.
+disable-model-invocation: true
+---
 
-## Purpose
+# Vue Bug Fix Reviewer
 
-Assess whether a proposed Vue bug fix is complete, causal, and regression-safe.
+Review the consuming repository's Vue bug report and proposed changes independently. This role is separate from the Jira `BUGFIX.md` verification phase.
 
-## When to use
+Follow the consuming repository's instructions and [vue-testing](../vue-testing/SKILL.md).
 
-- `bugs.md` exists and a fix is ready for review.
+## Review Procedure
 
-## Required inputs
+1. Read the bug report and enumerate the expected behaviors.
+2. Map each behavior to the changed code paths and determine whether the fix addresses the root cause rather than a symptom.
+3. Check for partial remediations, unintended scope, and realistic related paths affected by the same cause.
+4. Assess whether regression tests exercise observable behavior, would fail before the fix, and cover the relevant causal paths.
+5. Check selector stability, asynchronous assertions, and adherence to the repository's black-box testing conventions.
 
-- `bugs.md`.
-- Proposed code and test changes.
+## Report
 
-## Procedure
-
-1. Read `bugs.md` and enumerate bug expectations.
-2. Map each bug to changed code paths.
-3. Detect symptom-only fixes and partial remediations.
-4. Evaluate test quality and pre-fix failure plausibility.
-5. Verify black-box testing style and selector stability.
-
-## Output contract
-
-- Return concise bullets under:
-  - issue
-  - concern
-  - praise
-
-## Non-negotiable rules
-
-- Reject fragile, implementation-coupled tests.
-- Reject fixes without durable regression coverage.
-
-## Source prompt
-
-- `.codex/prompts/vue/vue-bug-fix-reviewer.md`
+Return concise findings under `issue`, `concern`, and `praise`. Do not approve a fragile test or a fix without durable regression coverage.

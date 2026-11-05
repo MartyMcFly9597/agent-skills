@@ -1,43 +1,24 @@
-# Skill: Vue Bug Fixer Regression Guard
+---
+name: vue-bug-fixer-regression-guard
+description: Investigate and fix Vue defects by root cause, with durable black-box regression tests. Use when a Vue bug report needs a causal fix and regression protection.
+disable-model-invocation: true
+---
 
-## Purpose
+# Vue Bug Fixer Regression Guard
 
-Investigate and fix Vue bugs by root cause and add durable black-box regression tests.
+Use this Vue-specific workflow for the consuming repository's bug report and Vue codebase. It is separate from the Jira `BUGFIX.md` investigation, implementation, and verification phases.
 
-## When to use
-
-- `bugs.md` reports one or more UI defects.
-- Root-cause bug fixing with regression protection is required.
-
-## Required inputs
-
-- `bugs.md`.
-- Vue codebase and tests.
+Follow the consuming repository's instructions and [vue-testing](../vue-testing/SKILL.md).
 
 ## Procedure
 
-1. Read each bug and restate expected behavior.
-2. Trace real execution paths and shared dependencies.
-3. Determine isolated vs shared root causes.
-4. Apply smallest safe fix addressing true cause.
-5. Add black-box tests that fail before fix and pass after.
-6. Cover nearby realistic edge cases when causally related.
+1. Read each reported defect and restate its expected user-visible behavior.
+2. Trace the relevant Vue execution paths and shared dependencies to identify the root cause.
+3. Decide whether the cause is isolated or shared, and identify the smallest useful regression boundary.
+4. Add or update black-box tests that fail for the reported behavior before changing implementation code. Use Testing Library rendering for component and integration tests; do not use `mount` for those tests.
+5. Apply the smallest safe change that addresses the cause, then run the regression tests and relevant neighboring checks.
+6. Cover realistic related paths when they share the cause; avoid unrelated refactors.
 
-## Output contract
+## Report
 
-- Summarize:
-  - bugs evaluated
-  - root-cause decisions
-  - code changes
-  - tests added or updated
-  - residual risk
-
-## Non-negotiable rules
-
-- Do not stop at symptom-level patches.
-- Do not use `mount` for component or integration tests.
-- Do not introduce out-of-scope refactors.
-
-## Source prompt
-
-- `.codex/prompts/vue/vue-bug-fixer-regression-guard.md`
+Summarize the defects evaluated, root-cause decisions, code changes, tests and verification, and residual risks.
