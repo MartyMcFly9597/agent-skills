@@ -42,3 +42,5 @@ The supporting-source inventory for companion work item #16 is maintained separa
 ## Public-Safety Review
 
 The associated PR records review results by file, line, and generic category. Do not copy private matches, internal identifiers, source checkout names, or deny-list terms into this map or PR notes.
+
+Generic privacy checks run with `npm run check -- --shipped`. Source-specific organization, project, and business terms must be maintained in a private file outside the repository and supplied through `PRIVACY_DENYLIST`. The checker reports matching file, category, and line without echoing the matched text. When `PRIVACY_DENYLIST` is unset, only generic checks ran; do not claim a source-specific scan was completed.

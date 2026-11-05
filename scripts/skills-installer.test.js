@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
+const YAML = require('yaml');
 
 const INSTALLER = path.join(__dirname, '..', 'bin', 'skills.js');
 
@@ -44,7 +45,18 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
     const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
     for (const phase of phases) {
       const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
-      assert.match(content, /disable-model-invocation: true/);
+      const lines = content.split(/\r?\n/);
+      assert.equal(lines[0], '---', `${phase} frontmatter starts with YAML delimiter`);
+      const end = lines.indexOf('---', 1);
+      assert.notEqual(end, -1, `${phase} frontmatter closes`);
+      const document = YAML.parseDocument(lines.slice(1, end).join('\n'), { uniqueKeys: true });
+      assert.deepEqual(document.errors, [], `${phase} frontmatter is valid YAML`);
+      assert.ok(YAML.isMap(document.contents), `${phase} frontmatter is a mapping`);
+      const fields = document.toJS();
+      assert.equal(fields.name, phase);
+      assert.equal(typeof fields.description, 'string');
+      assert.ok(fields.description.length > 0);
+      assert.equal(fields['disable-model-invocation'], true);
       assert.match(content, /Read and follow.*\[workflow-execution\]\(\.\.\/workflow-execution\/SKILL\.md\)/);
     }
     for (const name of ['vue-bug-fixer-regression-guard', 'vue-bug-fix-reviewer']) {
