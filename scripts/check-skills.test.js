@@ -462,6 +462,16 @@ test('fails when the configured privacy denylist does not exist', () => {
   assert.match(result.stderr, /configured privacy deny-list file does not exist/);
 });
 
+test('reports when source-specific privacy scanning is not configured', () => {
+  const result = runChecker('# Public package\n', {}, [], undefined, true, {
+    ...process.env,
+    PRIVACY_DENYLIST: '',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /REVIEW PRIVACY_DENYLIST:1 source-specific privacy scan not configured/);
+});
+
 test('reports invalid denylist regex at its original file line', () => {
   const denylistPath = path.join(os.tmpdir(), `skills-invalid-denylist-${process.pid}`);
   fs.writeFileSync(denylistPath, '# first comment\n\n[\n');

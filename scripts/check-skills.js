@@ -603,6 +603,9 @@ function scanPrivacyLine(root, filePath, line, lineNumber, denylist, report) {
 function scanPrivacy(root, files, report) {
   let denylist;
   try {
+    if (!process.env.PRIVACY_DENYLIST) {
+      report.review('PRIVACY_DENYLIST', 'source-specific privacy scan not configured', 1);
+    }
     denylist = loadDenylist();
   } catch (error) {
     report.fail('PRIVACY_DENYLIST', error.message);
