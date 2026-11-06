@@ -42,13 +42,6 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
     assert.equal(installed.status, 0, installed.stderr);
     const skillsRoot = path.join(target, '.github', 'skills');
     assert.equal(fs.existsSync(path.join(target, '.github', 'prompts')), false);
-    const checkedInstall = spawnSync(process.execPath, [
-      path.join(__dirname, 'check-skills.js'),
-      '--root',
-      target,
-    ], { encoding: 'utf8' });
-    assert.equal(checkedInstall.status, 0, checkedInstall.stderr);
-    assert.match(checkedInstall.stdout, /Markdown links: \d+ relative links checked/);
     const phases = ['story-planner', 'story-implementer', 'story-verifier', 'bug-investigate', 'bug-fix', 'bug-verify'];
     for (const phase of phases) {
       const content = fs.readFileSync(path.join(skillsRoot, phase, 'SKILL.md'), 'utf8');
@@ -91,6 +84,24 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
     assert.match(storyReview, /acceptance criteria/);
     const bugReview = fs.readFileSync(path.join(skillsRoot, 'bug-verify', 'SKILL.md'), 'utf8');
     assert.match(bugReview, /root cause/);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
+test('installed skills tree passes the Markdown link check', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'installed-skills-link-check-'));
+  try {
+    const installed = runInstaller([target]);
+    assert.equal(installed.status, 0, installed.stderr);
+
+    const checkedInstall = spawnSync(process.execPath, [
+      path.join(__dirname, 'check-skills.js'),
+      '--root',
+      target,
+    ], { encoding: 'utf8' });
+    assert.equal(checkedInstall.status, 0, [checkedInstall.stdout, checkedInstall.stderr].filter(Boolean).join('\n'));
+    assert.match(checkedInstall.stdout, /Markdown links: \d+ relative links checked/);
   } finally {
     fs.rmSync(target, { recursive: true, force: true });
   }
