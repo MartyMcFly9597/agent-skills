@@ -89,6 +89,24 @@ test('installed workflows retain distinct Jira and Vue entry points', () => {
   }
 });
 
+test('installed skills tree passes the Markdown link check', () => {
+  const target = fs.mkdtempSync(path.join(os.tmpdir(), 'installed-skills-link-check-'));
+  try {
+    const installed = runInstaller([target]);
+    assert.equal(installed.status, 0, installed.stderr);
+
+    const checkedInstall = spawnSync(process.execPath, [
+      path.join(__dirname, 'check-skills.js'),
+      '--root',
+      target,
+    ], { encoding: 'utf8' });
+    assert.equal(checkedInstall.status, 0, [checkedInstall.stdout, checkedInstall.stderr].filter(Boolean).join('\n'));
+    assert.match(checkedInstall.stdout, /Markdown links: \d+ relative links checked/);
+  } finally {
+    fs.rmSync(target, { recursive: true, force: true });
+  }
+});
+
 function runInstaller(args, options = {}) {
   return spawnSync(process.execPath, [INSTALLER, 'install', ...args], { encoding: 'utf8', ...options });
 }

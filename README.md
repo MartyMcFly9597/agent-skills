@@ -29,7 +29,9 @@ These skills are explicitly invoked. They describe workflow behavior but do not 
 | `workflow-execution` | Supporting skill for shared planning, execution, and verification gates |
 | `vue-testing` | Supporting skill for Vue test authoring and regression-test review |
 
-The Vue bug skills remain separate from the Jira `BUGFIX.md` phases. Supporting skills have `user-invocable: false`: they do not add slash commands. The phase workflows explicitly load the shared workflow rules and load Vue guidance only for applicable changes.
+The Vue bug skills remain separate from the Jira `BUGFIX.md` phases. The `workflow-execution` and `vue-testing` support skills have `user-invocable: false`: they do not add slash commands. The phase workflows explicitly load the shared workflow rules and load Vue guidance only for applicable changes.
+
+The repository-maintenance agent at `.github/agents/skills-repo-orchestrator.agent.md` is local to this repository; it is not included in the npm package or copied by the workspace skills installer.
 
 ## Multiple Application Families
 
@@ -86,7 +88,7 @@ Run the repository checks with:
 npm run check
 ```
 
-For migration and provenance, see the migration map. Its supporting-source inventory is extended by the companion inventory work item.
+For migration and provenance, see the migration map, which includes the supporting-source inventory. User-level sources not supplied for review are marked uninspected there; requested paths with no tracked artifacts are recorded separately.
 
 ## Contributions
 
