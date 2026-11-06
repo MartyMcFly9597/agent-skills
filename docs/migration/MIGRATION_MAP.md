@@ -70,19 +70,16 @@ Disposition: `keep` means retain as a maintained artifact; `merge` or `adapt` me
 | `.github/agents/skills-repo-orchestrator.agent.md` | Keep as a repository-local maintenance agent; not converted into a consumer skill | Repository maintenance only; uses repository instructions and local tools | Not included in npm `files`; not copied by the skill installer | Current file is generic and reviewed by the public checks; source-specific scan still requires the private denylist |
 | `.github/instructions/**` | No repository-owned instruction files are tracked in this checkout | No local artifact to classify | None | Not applicable |
 
-### Sources Not Available in This Checkout
+### Sources Not Imported from Adjacent or User-Level Repositories
 
 | Source group named by #16 | Disposition | Ownership, dependencies, and install status | Public-safety status |
 | --- | --- | --- | --- |
-| Adjacent SPA `.codex/skills/**` | Not imported; inventory pending source-owner review | Consumer/SPA-owned. The adjacent checkout was not supplied, so artifacts, dependencies, and install destinations could not be verified | No source-specific review performed; do not infer these files are safe or copy them into this public package |
-| Adjacent SPA `.codex/prompts/pr-review.md` | Not imported; inventory pending source-owner review | Consumer/SPA-owned PR review source; source body and dependencies unavailable | No source-specific review performed; do not copy into this public package |
-| Adjacent SPA `.codex/prompts/vue/**` | Not imported; inventory pending source-owner review | Consumer/SPA-owned Vue sources; source bodies and dependencies unavailable | No source-specific review performed; do not copy into this public package |
-| Adjacent SPA `.github/prompts/**` | Not imported; inventory pending source-owner review | Consumer/SPA-owned prompt sources; source bodies and dependencies unavailable | No source-specific review performed; do not copy into this public package |
-| Adjacent SPA `.github/instructions/**`, including any repository-specific MCP instructions | Non-distributable by default; generalize only with source-owner approval | Consumer/SPA-owned instructions; the checkout was not supplied, so no MCP requirements or dependencies could be verified | No source-specific review performed; do not copy into this public package |
+| Adjacent SPA `.github/instructions/sonarqube_mcp.instructions.md` | Exclude from this package; project-specific instructions are not distributable as-is; generalize only with source-owner approval | SPA-owned artifact tracked in the supplied adjacent checkout; no install destination is defined for this package | Reviewed for inventory and distribution; not copied into this public package |
+| Adjacent SPA `.codex/skills/**`, `.codex/prompts/pr-review.md`, `.codex/prompts/vue/**`, `.github/prompts/**`, and `.github/skills/**` | No tracked artifacts found at these requested paths in the supplied checkout; nothing to import | The checked paths contain no tracked SPA artifacts to classify or install | No content was present at these paths to review; this does not make other SPA content distributable |
 | User-level cross-vendor review prompt | Exclude by default; consider only if the owner provides and approves a generic reusable source | User-owned source not supplied; no personal path or content recorded | Not reviewed or distributable from this inventory |
 | Installed user-level skills | Exclude by default unless an individual source is provided, owned, approved, and independently reviewed | User-level/third-party sources were not supplied; no personal paths or content recorded | Not reviewed or distributable from this inventory |
 
-The repository-maintenance agent is intentionally distinct from the npm-installed skill catalog. Repository-owned sources are classified above; adjacent SPA and user-level source groups remain explicitly uninspected because those checkouts were not supplied. Their absence here is not treated as evidence that the source sets are empty or safe.
+The repository-maintenance agent is intentionally distinct from the npm-installed skill catalog. The supplied adjacent SPA checkout was inspected for the requested paths: its tracked MCP instructions are explicitly excluded above, and no tracked artifacts were found at the other listed SPA paths. User-level sources remain uninspected because none were supplied.
 
 ## Public-Safety Review
 

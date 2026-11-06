@@ -88,7 +88,7 @@ Run the repository checks with:
 npm run check
 ```
 
-For migration and provenance, see the migration map, which includes the supporting-source inventory. Source groups unavailable in this checkout are explicitly marked uninspected there.
+For migration and provenance, see the migration map, which includes the supporting-source inventory. User-level sources not supplied for review are marked uninspected there; requested paths with no tracked artifacts are recorded separately.
 
 ## Contributions
 
