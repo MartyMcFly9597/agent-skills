@@ -32,7 +32,13 @@ These skills are explicitly invoked. They describe workflow behavior but do not 
 
 The Vue bug skills remain separate from the Jira `BUGFIX.md` phases. The `workflow-execution` and `vue-testing` support skills have `user-invocable: false`: they do not add slash commands. The phase workflows explicitly load the shared workflow rules and load Vue guidance only for applicable changes.
 
-The repository-maintenance agent at `.github/agents/skills-repo-orchestrator.agent.md` is local to this repository; it is not included in the npm package or copied by the workspace skills installer.
+The repository-maintenance agent at `.github/agents/skills-repo-orchestrator.agent.md` is local to this repository; it is not included in the npm package or copied by the skills installer.
+
+## Customization Policy
+
+Use a skill for an on-demand workflow, instructions for standing guidance, and a custom agent for supported role, tool, and model configuration. See the [Copilot customization policy](https://github.com/MartyMcFly9597/agent-skills/blob/main/docs/CUSTOMIZATION_POLICY.md) for workspace/user locations, discovery and conflict rules, and a read-only reviewer example.
+
+This installer manages only `<workspace>/.github/skills` or, explicitly with `--user`, `~/.copilot/skills`. Agents, instructions, and `.agents/skills` locations are documented but never installed. The policy stays in the source repository rather than the installed skills tree.
 
 ## Multiple Application Families
 

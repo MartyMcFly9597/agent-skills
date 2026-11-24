@@ -36,7 +36,7 @@ Official references: VS Code documentation, “Convert prompt files to skills”
 | `vue-bug-fix-reviewer` | Historical Vue reviewer prompt | `.github/skills/vue-bug-fix-reviewer/SKILL.md`; independent review of Vue fix completeness, causal coverage, and regression-test quality |
 | `workflow-execution` | Story and bug workflow sources listed above | Common planning/resume contract, one-step execution, verification evidence, checkpointing, and gate reporting |
 | Story workflow skills | `.github/prompts/story-agent.md` | Shared story inspection, regression-risk, scope and documentation guidance distributed by phase |
-| Story and review skills | Historical model-policy source | Skills document that model/tool selection is not enforceable by skill text; broader Copilot customization policy is tracked in #19 |
+| Story and review skills | Historical model-policy source | Skills retain workflow guidance; the [Copilot customization policy](../CUSTOMIZATION_POLICY.md) documents agent configuration and advisory model/reviewer rules without claiming skill text enforces them |
 
 ## Supporting Source Inventory
 
@@ -71,6 +71,7 @@ For repository-owned skills, `generic; no source-specific scan` means generic he
 | `.github/prompts/vue/vue-bug-fixer-regression-guard.md` | Adapted into `.github/skills/vue-bug-fixer-regression-guard/SKILL.md` | Repository-owned; distinct from Jira bug phases; depends on Vue testing guidance | Historical Git source only; excluded from package and installer | Historical content remains in public Git history; not copied as a separate installed artifact |
 | `.github/prompts/vue/vue-bug-fix-reviewer.md` | Adapted into `.github/skills/vue-bug-fix-reviewer/SKILL.md` | Repository-owned; distinct from Jira bug verification; depends on Vue testing guidance | Historical Git source only; excluded from package and installer | Historical content remains in public Git history; not copied as a separate installed artifact |
 | `.github/prompts/story-agent.md` | Shared guidance distributed across the three story phase skills and `workflow-execution`; phase ownership remains with #15 | Repository-owned; avoid reimplementing story phases in support skills | Historical Git source only; excluded from package and installer | Historical content remains in public Git history; not copied as a separate installed artifact |
+| `.github/prompts/model-policy.md` | Adapt generic guidance into the [Copilot customization policy](../CUSTOMIZATION_POLICY.md); keep review procedures in existing review skills | Repository-owned historical source; agent fields depend on the consuming harness, model inventory, and permissions | Policy and agent example are documentation only, excluded from package and installer | Fixed model IDs, vendor assignments, prices, and private policy omitted; historical content is not redistributed |
 | `.github/agents/skills-repo-orchestrator.agent.md` | Keep as a repository-local maintenance agent; not converted into a consumer skill | Repository maintenance only; uses repository instructions and local tools | Not included in npm `files`; not copied by the skill installer | Generic; no source-specific scan |
 | `.github/instructions/**` | No repository-owned instruction files are tracked in this checkout | No local artifact to classify | None | Not applicable |
 
