@@ -1,21 +1,28 @@
 #!/usr/bin/env node
 
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
 
 function printHelp() {
-  console.log(`skills - install and manage workspace skills
+  console.log(`skills - install and manage Copilot skills
 
 Usage:
   skills list [--source <path>]
   skills install [target] [--force] [--dry-run] [--source <path>]
+  skills install --user [--force] [--dry-run] [--source <path>]
   skills doctor [--source <path>]
+
+Install scopes:
+  workspace  <target>/.github/skills (default target: current directory)
+  --user     ~/.copilot/skills, the Copilot personal skills folder
 
 Examples:
   skills list
   skills install .
   skills install ../my-workspace
   skills install . --force
+  skills install --user --dry-run
   skills doctor
 `);
 }
@@ -104,7 +111,7 @@ function listSkills(sourceRoot) {
 }
 
 function parseInstallArgs(args) {
-  const options = { target: undefined, source: undefined, force: false, dryRun: false };
+  const options = { target: undefined, source: undefined, force: false, dryRun: false, user: false };
 
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
@@ -116,6 +123,8 @@ function parseInstallArgs(args) {
       options.force = true;
     } else if (argument === '--dry-run') {
       options.dryRun = true;
+    } else if (argument === '--user') {
+      options.user = true;
     } else if (argument.startsWith('--')) {
       throw new Error(`Unknown option: ${argument}`);
     } else if (options.target === undefined) {
@@ -123,6 +132,10 @@ function parseInstallArgs(args) {
     } else {
       throw new Error(`Unexpected argument: ${argument}`);
     }
+  }
+
+  if (options.user && options.target !== undefined) {
+    throw new Error('--user cannot be combined with a target path');
   }
 
   return options;
@@ -137,19 +150,23 @@ function runInstall(args) {
     process.exitCode = 2;
     return;
   }
-  const targetRoot = normalize(options.target || process.cwd());
+  const scope = options.user ? "user" : "workspace";
+  const targetRoot = options.user
+    ? path.join(os.homedir(), ".copilot", "skills")
+    : normalize(options.target || process.cwd());
   const sourceRoot = normalize(options.source || defaultSourceRoot());
   const force = options.force;
   const dryRun = options.dryRun;
 
   const srcSkills = path.join(sourceRoot, ".github", "skills");
-  const destSkills = path.join(targetRoot, ".github", "skills");
+  const destSkills = options.user ? targetRoot : path.join(targetRoot, ".github", "skills");
 
   if (!fs.existsSync(srcSkills)) {
     console.error(`Source skills directory not found: ${srcSkills}`);
     process.exit(1);
   }
   console.log(`Source: ${sourceRoot}`);
+  console.log(`Scope: ${scope}`);
   console.log(`Target: ${targetRoot}`);
   console.log(`Mode: ${dryRun ? "dry-run" : "copy"}`);
 
