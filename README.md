@@ -46,6 +46,26 @@ Keep skills flat: `.github/skills/<skill-name>/SKILL.md`. Distinguish skills by 
 
 The example app-family names above describe an extension convention, not additional packaged skills. A technology skill such as `vue-testing` can apply across app families; it must not imply that every application uses Vue, PrimeVue, or the same e2e setup.
 
+## Get the Skills
+
+You need Git and Node.js 22 or newer. Clone this public repository and install the skills for personal use:
+
+```powershell
+git clone https://github.com/MartyMcFly9597/agent-skills.git
+cd agent-skills
+npm run skills:install:user:dry-run
+npm run skills:install:user
+```
+
+To update, pull and reinstall with `--force` so changed skill files are overwritten:
+
+```powershell
+git pull
+npm run skills:install:user -- --force
+```
+
+No `npm install`, `npx`, or package registry is needed: the installer uses only Node.js built-in modules and makes no network requests. Git is the only tool that contacts GitHub. If PowerShell blocks `npm` because of the script execution policy, run `npm.cmd` instead, or call the installer directly with `node bin/skills.js install --user`.
+
 ## Install Into a Workspace
 
 The installer copies Copilot skills to `.github/skills`.
@@ -61,11 +81,11 @@ The installer supports `--force`, `--dry-run`, and `--source <path>` in any orde
 To use the skills in every workspace without adding files to a repository, install them into the Copilot personal skills folder, `~/.copilot/skills`:
 
 ```powershell
-npm run skills:install -- --user --dry-run
-npm run skills:install -- --user
+npm run skills:install:user:dry-run
+npm run skills:install:user
 ```
 
-`--user` supports `--force`, `--dry-run`, and `--source <path>`, and it rejects a target path. Install each skill at either user or workspace scope, not both: same-named skills from both locations are listed separately.
+These shortcuts run `node bin/skills.js install --user` with and without `--dry-run`. `--user` supports `--force`, `--dry-run`, and `--source <path>`, and it rejects a target path. Install each skill at either user or workspace scope, not both: same-named skills from both locations are listed separately.
 
 ### Updating an Existing Installation
 
