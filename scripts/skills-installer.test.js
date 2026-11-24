@@ -309,6 +309,40 @@ test('user install rejects a target path', () => {
   }
 });
 
+test('user install from a dependency-free copy installs every repository skill', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-clean-clone-test-'));
+  try {
+    const repoRoot = path.join(__dirname, '..');
+    const clone = path.join(root, 'clone');
+    const home = path.join(root, 'home');
+    fs.cpSync(path.join(repoRoot, 'bin'), path.join(clone, 'bin'), { recursive: true });
+    fs.cpSync(path.join(repoRoot, '.github', 'skills'), path.join(clone, '.github', 'skills'), { recursive: true });
+    fs.mkdirSync(home);
+
+    const result = spawnSync(process.execPath, [path.join(clone, 'bin', 'skills.js'), 'install', '--user'], {
+      cwd: root,
+      encoding: 'utf8',
+      env: userInstallEnv(home),
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+    const sourceSkills = path.join(repoRoot, '.github', 'skills');
+    const installedSkills = path.join(home, '.copilot', 'skills');
+    const sourceFiles = fs.readdirSync(sourceSkills, { recursive: true, withFileTypes: true }).filter((entry) => entry.isFile());
+    assert.ok(sourceFiles.length > 0);
+    for (const entry of sourceFiles) {
+      const relative = path.relative(sourceSkills, path.join(entry.parentPath, entry.name));
+      assert.equal(
+        fs.readFileSync(path.join(installedSkills, relative), 'utf8'),
+        fs.readFileSync(path.join(sourceSkills, relative), 'utf8'),
+        relative,
+      );
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('skill inventory excludes directories without a SKILL.md file', () => {
   const source = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-list-test-'));
   try {
