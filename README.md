@@ -24,6 +24,7 @@ These skills are explicitly invoked. They describe workflow behavior but do not 
 | `bug-fix` | Execute one test-first bug-fix step at a time |
 | `bug-verify` | Independently verify root cause, regression tests, and evidence |
 | `pr-review` | Review a pull request diff for correctness and regression risk |
+| `cross-vendor-review` | Delegate a read-only branch review to a reviewer model from a different vendor than the implementation author |
 | `vue-bug-fixer-regression-guard` | Fix Vue defects by root cause with durable black-box regression tests |
 | `vue-bug-fix-reviewer` | Independently review Vue fixes for causal completeness and regression safety |
 | `workflow-execution` | Supporting skill for shared planning, execution, and verification gates |
