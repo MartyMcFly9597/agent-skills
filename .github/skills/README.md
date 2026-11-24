@@ -2,6 +2,8 @@
 
 This directory contains reusable skill packages for the workspace.
 
+The [Copilot customization policy](https://github.com/MartyMcFly9597/agent-skills/blob/main/docs/CUSTOMIZATION_POLICY.md) explains when to use a skill, instruction, or custom agent and how user/workspace scopes interact. The installer copies this tree only to `<workspace>/.github/skills` or, with `--user`, `~/.copilot/skills`; agents and instructions are not installed.
+
 ## Folder Convention
 
 Each skill lives in its own folder with exactly one `SKILL.md` file:

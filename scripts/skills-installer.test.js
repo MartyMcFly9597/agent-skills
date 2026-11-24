@@ -262,6 +262,44 @@ function userInstallEnv(home) {
   return { ...process.env, HOME: home, USERPROFILE: home };
 }
 
+test('workspace installs copy only skills and never write to the user home', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-workspace-scope-test-'));
+  try {
+    const source = path.join(root, 'source');
+    const files = {
+      '.github/skills/sample/SKILL.md': '# Skill\n',
+      '.github/agents/reviewer.agent.md': '# Agent\n',
+      '.github/instructions/review.instructions.md': '# Instructions\n',
+      '.github/copilot-instructions.md': '# Repository instructions\n',
+      'AGENTS.md': '# Project instructions\n',
+      '.agents/skills/other/SKILL.md': '# Other harness skill\n',
+    };
+    for (const [relative, content] of Object.entries(files)) {
+      const file = path.join(source, relative);
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, content);
+    }
+
+    for (const mode of ['explicit', 'default']) {
+      const target = path.join(root, mode);
+      const home = path.join(root, `${mode}-home`);
+      fs.mkdirSync(target);
+      fs.mkdirSync(home);
+      const args = mode === 'explicit' ? [target, '--source', source] : ['--source', source];
+      const result = runInstaller(args, { cwd: target, env: userInstallEnv(home) });
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(result.stdout, /Scope: workspace/);
+      assert.equal(fs.readFileSync(path.join(target, '.github', 'skills', 'sample', 'SKILL.md'), 'utf8'), '# Skill\n');
+      assert.deepEqual(fs.readdirSync(target), ['.github'], mode);
+      assert.deepEqual(fs.readdirSync(path.join(target, '.github')), ['skills'], mode);
+      assert.deepEqual(fs.readdirSync(home), [], `${mode} install must leave HOME and USERPROFILE untouched`);
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('user install writes personal Copilot skills and keeps dry-run side-effect free', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-user-install-test-'));
   try {
