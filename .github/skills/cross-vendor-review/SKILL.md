@@ -43,6 +43,8 @@ Request an independent, read-only code review of the current branch through a su
 
 Give the reviewer the repository path, exact base and HEAD, dirty-tree scope, user requirements, applicable instructions, and prior findings when relevant. Require it to inspect the actual diff and nearby owning code/tests, including untracked files, rather than trusting the implementation summary.
 
+State in the reviewer request that the reviewer must not edit files, commit, push, create branches, publish comments, or change external systems.
+
 Prioritize correctness, security/privacy, data-loss risks, behavioral regressions, compatibility, concurrency, cleanup/error masking, and missing meaningful tests. Evaluate claims against actual control flow and contracts. Keep unrelated refactors and documented non-goals out of scope. Separate genuine defects from optional style preferences.
 
 The reviewer may run existing focused, non-mutating checks only when they are known to be local and safe; no real-service calls, destructive tests, live notifications, dependency installs, or secret output. Follow repository-specific test safety rules. Never terminate a shared shell with exit or enable shell-wide fail-fast mode. When execution is unavailable, state that limitation and do not claim tests were run.
