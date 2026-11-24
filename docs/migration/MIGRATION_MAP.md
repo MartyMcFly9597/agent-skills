@@ -7,7 +7,7 @@ This map records source material consolidated into canonical Copilot skills. Pro
 ## Conversion
 
 - Workflow instructions are maintained in `.github/skills/<name>/SKILL.md` and invoked by skill name.
-- The installer copies skills to `<workspace>/.github/skills`; no prompt files are maintained, packaged, or installed.
+- The installer copies skills to `<workspace>/.github/skills`, or to `~/.copilot/skills` with `--user`; no prompt files are maintained, packaged, or installed.
 - Names, descriptions, argument guidance, and useful workflow requirements from historical sources were consolidated into skills.
 - Legacy `agent`, `model`, and `tools` metadata was not transferred to skills. Custom instructions can express project guidance, but they do not configure or enforce those settings.
 - If a future workflow requires harness-supported model or tool configuration, use a custom agent in `.github/agents`. Model availability remains environment-controlled; skill hints are informational, and review skills recommend a distinct reviewer/model family when available.
@@ -40,7 +40,7 @@ Official references: VS Code documentation, “Convert prompt files to skills”
 
 ## Supporting Source Inventory
 
-Disposition: `keep` means retain as a maintained artifact; `merge` or `adapt` means the historical source is represented by the named canonical skill; `exclude` means do not distribute it. The installer copies only `.github/skills` into `<workspace>/.github/skills`; historical prompt files are not packaged or installed.
+Disposition: `keep` means retain as a maintained artifact; `merge` or `adapt` means the historical source is represented by the named canonical skill; `exclude` means do not distribute it. The installer copies only `.github/skills` into `<workspace>/.github/skills` or, with `--user`, into `~/.copilot/skills`; historical prompt files are not packaged or installed.
 
 For repository-owned skills, `generic; no source-specific scan` means generic heuristic checks ran, review notices need human disposition, and no separate source-specific scan was performed.
 

@@ -56,9 +56,20 @@ npm run skills:install -- C:\path\to\workspace
 
 The installer supports `--force`, `--dry-run`, and `--source <path>` in any order. If no target is supplied, it installs into the current directory.
 
+## Install for Personal Use
+
+To use the skills in every workspace without adding files to a repository, install them into the Copilot personal skills folder, `~/.copilot/skills`:
+
+```powershell
+npm run skills:install -- --user --dry-run
+npm run skills:install -- --user
+```
+
+`--user` supports `--force`, `--dry-run`, and `--source <path>`, and it rejects a target path. Install each skill at either user or workspace scope, not both: same-named skills from both locations are listed separately.
+
 ### Updating an Existing Installation
 
-The installer preserves destination-only files, including with `--force`; it does not prune retired skills. When updating an older installation, review and remove these obsolete skill directories from the target workspace's `.github/skills` after preserving any local customizations:
+The installer preserves destination-only files, including with `--force`; it does not prune retired skills. When updating an older installation, review and remove these obsolete skill directories from the target workspace's `.github/skills`, or from `~/.copilot/skills` for a user installation, after preserving any local customizations:
 
 - `shared-vue-testing-context`
 - `vue-testing-library-black-box`
@@ -72,6 +83,7 @@ Older installations may also contain prompt files from the former compatibility 
 ```powershell
 node bin/skills.js list
 node bin/skills.js install C:\path\to\workspace
+node bin/skills.js install --user
 node bin/skills.js doctor
 ```
 

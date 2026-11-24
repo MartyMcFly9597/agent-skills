@@ -257,6 +257,58 @@ test('installer preserves existing files unless force is specified', () => {
   }
 });
 
+// libuv resolves os.homedir() from USERPROFILE on Windows and HOME elsewhere.
+function userInstallEnv(home) {
+  return { ...process.env, HOME: home, USERPROFILE: home };
+}
+
+test('user install writes personal Copilot skills and keeps dry-run side-effect free', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-user-install-test-'));
+  try {
+    const source = path.join(root, 'source');
+    const home = path.join(root, 'home');
+    fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
+    fs.mkdirSync(home);
+    fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
+    const env = userInstallEnv(home);
+
+    const dryRun = runInstaller(['--user', '--source', source, '--dry-run'], { env });
+    assert.equal(dryRun.status, 0, dryRun.stderr);
+    assert.match(dryRun.stdout, /Scope: user/);
+    assert.match(dryRun.stdout, /skills copied: 1/);
+    assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
+
+    const installed = runInstaller(['--user', '--source', source], { env });
+    assert.equal(installed.status, 0, installed.stderr);
+    assert.equal(fs.readFileSync(path.join(home, '.copilot', 'skills', 'sample', 'SKILL.md'), 'utf8'), '# Skill\n');
+    assert.equal(fs.existsSync(path.join(home, '.copilot', 'skills', '.github')), false);
+    assert.equal(fs.existsSync(path.join(home, '.github')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('user install rejects a target path', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-user-install-test-'));
+  try {
+    const source = path.join(root, 'source');
+    const home = path.join(root, 'home');
+    const target = path.join(root, 'target');
+    fs.mkdirSync(path.join(source, '.github', 'skills', 'sample'), { recursive: true });
+    fs.mkdirSync(home);
+    fs.writeFileSync(path.join(source, '.github', 'skills', 'sample', 'SKILL.md'), '# Skill\n');
+
+    const result = runInstaller(['--user', target, '--source', source], { env: userInstallEnv(home) });
+
+    assert.equal(result.status, 2);
+    assert.match(result.stderr, /--user cannot be combined with a target path/);
+    assert.equal(fs.existsSync(target), false);
+    assert.equal(fs.existsSync(path.join(home, '.copilot')), false);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('skill inventory excludes directories without a SKILL.md file', () => {
   const source = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-list-test-'));
   try {
